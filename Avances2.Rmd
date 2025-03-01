@@ -1,0 +1,270 @@
+---
+title: "Avances Proyecto 2"
+author: "Andre Jo"
+date: "2025-02-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(cluster) #Para calcular la silueta
+library(e1071)#para cmeans
+library(mclust) #mixtures of gaussians
+library(fpc) #para hacer el plotcluster
+library(NbClust) #Para determinar el número de clusters óptimo
+library(factoextra) #Para hacer gráficos bonitos de clustering
+library(hopkins) #Para revisar si vale la pena hacer agrupamiento
+library(GGally) #Para hacer el conjunto de graficos
+library(FeatureImpCluster) #Para revisar la importancia de las variables en los grupos.
+library(pheatmap) #Para hacer mapa de calor
+library(ggrepel)
+```
+
+Leer datos del csv y juntar con sales para incluir las variables.
+
+```{r  }
+
+data <- read.csv("test.csv")
+datasample <- read.csv("sample_submission.csv")
+data_analysis <- merge(data, datasample, by="Id")
+
+```
+
+```{r pressure, echo=FALSE}
+data_analysis <- data_analysis[,  c("MSSubClass", "LotFrontage", "LotArea",  "OverallQual", "OverallCond",
+                 "YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtFinSF2", 
+                 "BsmtUnfSF", "TotalBsmtSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+                 "GrLivArea", "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+                 "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces", "GarageYrBlt"
+                 , "GarageCars", "GarageArea", "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+                 , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "MoSold", "YrSold",
+                 "SalePrice")]
+
+
+#escalado de datos para ajustarlo a rangos especificos
+
+data_hop <- scale(data_analysis)
+
+```
+
+```{r echo=TRUE }
+suppressWarnings(hopkins(data_hop))
+
+```
+
+El valor del estadístico de hopkins está alejado de 0.5 por lo que los datos no son aleatorios hay altas posibilidades de que sea factible el agrupamiento. Ademas vemos que alcanza a 1 lo cual significa que si hay tendencia fuerte de agrupamientos
+
+```{r echo=TRUE }
+datos_dist<- dist(data_hop)
+fviz_dist(datos_dist, show_labels = F)
+```
+
+Como se puede observar en la VAT, sí existen ciertos patrones que el estadistico de hopkins da.
+
+```{r echo=TRUE }
+wss=0
+for (i in 1:10) 
+  wss[i] <- sum(kmeans(na.omit(data_analysis), centers=i)$withinss)
+
+plot(1:10, wss, type="b", xlab="Number of Clusters",  ylab="Within groups sum of squares")
+
+```
+En este caso podemos observar que el numero de clusters a elegir es 3 como se observa en la gráfica ya que esta empezando a reducir su decenso a llegar a uno estable.
+
+```{r echo=TRUE }
+
+fviz_nbclust(na.omit(data_analysis), kmeans, method = "wss") +
+  labs(subtitle = "Elbow method")
+
+```
+
+Nuevamente para confirmar que si es el numero de clusters, si se observa que actua como la grafica anterior donde el cluster k 3 no tiene un mayor desenso. 
+
+```{r echo=TRUE }
+
+km<-kmeans(na.omit(data_analysis),3,iter.max =100)
+data_analysis<- na.omit(data_analysis)
+data_analysis$grupo<-km$cluster
+```
+
+```{r echo=TRUE }
+
+fviz_cluster(km, data = na.omit(data_hop) ,geom = "point", ellipse.type = "norm")
+
+```
+Se observa que el segundo cluster se traslapa del cluster tercer y primer donde se ve que hay un segmento que si se juntan. Lo cual puede significar que las variables no son tan distintas. Cabe recalcar que el cluster 2 y 3 pueden ser distintas pero son pocas las diferencias. 
+```{r }
+km$size
+```
+Se observa que el primer cluster tiene 653 puntos, segundo cluster tiene 144 puntos y el tercero cluster tiene 349 puntos. Esto puede significar que el primer cluster al tener mayor cantidad de datos puede que esten distribuidos de manera uniforme entre los clusters.
+
+```{r }
+km$withinss
+```
+Se observa que hay mayor cantidad en el cluster 2 pero como vemos en la grafica con anterioridad el numero de clusters se debe reducir a 2. 
+
+
+```{r echo=TRUE }
+
+km<-kmeans(na.omit(data_analysis),2,iter.max =100)
+data_analysis<- na.omit(data_analysis)
+data_analysis$grupo<-km$cluster
+```
+
+```{r echo=TRUE }
+
+fviz_cluster(km, data = na.omit(data_hop) ,geom = "point", ellipse.type = "norm")
+
+```
+Se observa que el segundo cluster se traslapa del primer cluster donde se ve que hay un segmento que si se juntan. Lo cual puede significar que las variables no son tan distintas como habia mencionado anteriormente.
+```{r }
+km$size
+```
+
+Se observa que el primer cluster tiene 526 puntos, segundo cluster tiene 620 puntos lo cual no se alejan de uno al otro a diferencia de los 3 clusters elegidos.
+
+```{r }
+km$withinss
+```
+Aunque podemos observar que withinss tiene mas diferencia puede ser comparado el segundo cluster como el doble del cluster 1. Se puede inferir que los puntos del cluster dos estan más ceparados a comparación del cluster 1. 
+
+
+```{r echo=TRUE }
+
+m<-data.frame(withinss=km$withinss, size=km$size)
+ggplot(m, aes(size,withinss))+
+geom_point()+
+geom_smooth(method="lm")+
+labs(x="cardinalidad (size)",y="magnitud (whithinss)")+
+geom_text_repel(label=rownames(m))
+```
+Se puede inferir de los 2 grupos, no se alejan demasiado de la línea recta por lo que podríamos decir que no existen grupos anómalos.   
+
+
+```{r echo=TRUE }
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(1:5, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE}
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(7:12, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE }
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(13:18, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE }
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(19:24, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE}
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(25:30, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE}
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(31:34, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE }
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(35:37, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+```{r echo=TRUE }
+data_analysis <- as.data.frame(data_analysis)
+data_analysis <- na.omit(data_analysis)
+data_analysis$grupo<-as.factor(data_analysis$grupo)
+ggpairs(data_analysis[, c(1:37, 38)],
+aes(col = factor(grupo)),
+progress = FALSE)
+```
+
+En la gráfica en general de las 38 variables no se puede observar alguna significancia, aunque podemos observar que las variable de 31 a 34 sus correlancias son muy bajas a comparación de las otras gráficas. 
+
+
+```{r echo=TRUE }
+library(flexclust)
+set.seed(123)
+res<-kcca(na.omit(data_hop),2)
+importance <- FeatureImpCluster(res, as.data.table(na.omit(data_hop)))
+plot(importance)
+```
+Las variables con tasas de error más bajas (0.00) son más importantes para el modelo, ya que contribuyen menos a las predicciones incorrectas. En este caso, variables como "YearBuilt", "GarageYrBlt", "OverallQual", "TotalBsmtSF" y "GrLivArea" parecen tener un buen desempeño.
+Las variables con tasas de error más altas ( x >= 0.00) son menos importantes, ya que contribuyen más a las predicciones incorrectas. Variables como "PoolArea", "MiscVal", "X3SsnPorch" y "KitchenAbvGr" parecen tener un desempeño pobre.
+
+```{r echo=TRUE }
+barplot(res, bycluster=T, cex.names = 0.2)
+```
+
+Como se puede observar en los dos clusters. Al comparar podemos observar que cada uno de ellos es lo contrario. Ahora inferimos que para "SalePrice" es significativamente más alta en el Cluster 2 que en el Cluster 1, esto sugiere que las viviendas en el Cluster 2 tienden a tener precios de venta más altos que las viviendas en el Cluster 1. Si la barra para "LotArea" es más alta en el Cluster 1 que en el Cluster 2, esto sugiere que las viviendas en el Cluster 1 tienden a tener lotes más grandes que las viviendas en el Cluster 2.
+
+
+```{r echo=TRUE}
+fviz_cluster(km,
+data_analysis,
+labelsize = 6,
+choose.vars = c("SalePrice","LotArea"),
+main="k=2 grupos")
+```
+por lo tanto se realiza una comparacion ante las dos variables de salePrice y Lot Area donde se tiende a agrupar propiedades con precios de venta bajos y áreas de lote más pequeñas. Mientras que el otro cluster tiende a agrupar propiedades con precios de venta más altos y áreas de lote más grandes.
+
+
+```{r  echo=TRUE }
+silkm<-silhouette(km$cluster,dist(data_analysis))
+mean(silkm[,2]) #0.45, no es la mejor particiÃ³n pero no estÃ¡ mal
+```
+```{r }
+matriz_dist<- dist(data_analysis)
+```
+
+```{r }
+hc<-hclust(datos_dist, method = "ward.D2") #Genera el clustering jerÃ¡rquico de los datos
+plot(hc, cex=0.5, axes=FALSE) #Genera el dendograma
+rect.hclust(hc,k=2)
+```
+
+
+```{r }
+
+fviz_dend(hc,k=2, cex = .2, horiz = T)
+```
+
+```{r }
+fviz_dend(hc, k=2, color_labels_by_k = T, cex = .4 ,type = "phylogenic", repel = T)
+```
+A partir de los dos clusters elegidos, se puede examinar las características de los puntos de datos dentro de cada uno para entender sus similitudes y diferencias.
