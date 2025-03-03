@@ -1,0 +1,191 @@
+---
+title: "Proyecto 2_Entrega 1"
+author: "Andre Jo"
+date: "2025-03-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(corrplot)
+library(nortest)
+library(caret)
+```
+
+
+
+```{r }
+
+datos <- read.csv("test.csv")
+submi <- read.csv("sample_submission.csv")
+
+datos <- merge(datos, submi, by="Id")
+
+datos_train <- read.csv("train.csv")
+
+datos_train_uni <- datos_train[, c("LotArea", "SalePrice")]
+
+
+head(datos)
+
+head(datos_train)
+
+
+```
+
+Se selecciona la variable LotArea como la variable a medir. Se puede inferir que entre más area hay, más espacio ya sea para expandir o para realizar actividades puedan atraer a más personas por lo cual puede aumentar su precio de venta. 
+```{r leer archivos csv}
+
+fitLMPW<-lm(LotArea~SalePrice, data = datos_train_uni)
+summary(fitLMPW)
+```
+Se puede inferir en este resumen donde el $R^2$ ajustado es menor a 1% lo cual puede tener una mayor relación aunque observamos que el otro $R^2$ es de 0.06 donde puede explicar una porción de la variabilidad del precio de venta.
+```{r}
+
+ggplot(data = datos_train_uni, mapping = aes(x = SalePrice, y = LotArea)) +
+geom_point(color = "firebrick", size = 2) +
+geom_smooth(method = "lm", se = TRUE, color = "black") +
+labs(title = "Precio En Venta ~ Estilo De La Casa", x = "Precio", y = "Area del Lote")+
+  scale_x_continuous(labels = scales::comma) +  # Format large numbers with commas
+  scale_y_log10(labels = scales::comma) +       # Use log scale for large LotArea value
+theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+```
+Se puede observar que la linea de tendencia se dirige hacia arriba. Esto puede significar que entre más area, más aumenta el precio. por lo tanto asumimos que toda la concentración de puntos son casas con menor area y con un precio menor. Por otro lado tambien observamos variabilidad con los datos donde se acercan a la linea lo cual indica que otras variables pueden afectar con el precio de venta de la casa. 
+
+Declarando las variable numericas del dataset
+```{r}
+
+datos <- datos[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+                 "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2", 
+                 "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+                  "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+                 "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces"
+                 , "GarageCars", "GarageArea", "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+                 , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "MoSold", "YrSold",
+                 "SalePrice")]
+
+datos_train <- datos_train[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+                 "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2", 
+                 "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+                  "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+                 "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces"
+                 , "GarageCars", "GarageArea", "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+                 , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "MoSold", "YrSold",
+                 "SalePrice")]
+```
+
+
+
+```{r}
+fitMLM_varSales<-lm(SalePrice~.,data = datos)
+```
+
+
+```{r}
+summary(fitMLM_varSales)
+```
+Se observa principalmente el $R^2$ ajustado y el multiple tienen un valor de 1 lo cual puede indicar un ajuste perfecto con los variables o puede ser que se analizaron muchas variables lo cual pueden ser irrelevantes como se explica en las siguientes gráficas. Además, al tener un ajuste perfecto puede indicar overfitting de las variables.  
+
+```{r}
+plot(datos_train[,1:5])
+```
+
+```{r}
+plot(datos_train[,5:10])
+```
+
+```{r}
+plot(datos_train[,10:15])
+```
+
+```{r}
+plot(datos_train[,15:20])
+```
+```{r}
+plot(datos_train[,20:25])
+```
+
+```{r}
+plot(datos_train[,25:29])
+```
+
+```{r}
+plot(datos_train[,29:32])
+
+```
+
+```{r}
+matriz_cor <- cor(datos_train)
+corrplot(matriz_cor, tl.cex = 0.6)
+```
+Se observa que GarageCars, TotRmsAbvGrd y Garage Area se relacionan y ademas Sales price con Overall Quality exponen multicolinealidad ya que su correlación es mayor a 90%.Por otro lado se quita la variable MoSold para inferir si el $R^2$ ajustado es igual a 1.
+
+Para esto se quita las variables GarageCars, Garage Area, TotRmsAbvGrd y Overall Quality. Sales price no se quita porque es la variable principal que comparamos.
+
+```{r}
+
+datos <- datos[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+                 "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2", 
+                 "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+                  "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+                 "BedroomAbvGr", "KitchenAbvGr", "Fireplaces",
+                  "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+                 , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal"  ,"YrSold",
+                 "SalePrice")]
+
+datos_train <- datos_train[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+                 "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2", 
+                 "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+                  "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+                 "BedroomAbvGr", "KitchenAbvGr", "Fireplaces",
+                  "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+                 , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "YrSold",
+                 "SalePrice")]
+```
+
+
+
+```{r}
+fitMLM_varSales_noVar<-lm(SalePrice~.,data = datos)
+```
+
+
+```{r}
+summary(fitMLM_varSales_noVar)
+```
+
+Se observa que $R^2$ ajustado y el multiple ya no es perfecto pero es razonable ya que es mayor a 90%
+```{r}
+plot(fitMLM_varSales_noVar)
+```
+
+
+En los gráficos se pueden ver que los residuos están aleatoriamente distribuidos alrededor de 0 y que no siguen ningún patrón. Si bien el gráfico q-q parece que no siguen una distribución normal como se puede observa en las cola inicial y cola del final por esta razón, necesitamos realizar la prueba de Kolmogorov-Smirnov. 
+
+```{r}
+hist(fitMLM_varSales_noVar$residuals)
+boxplot(fitMLM_varSales_noVar$residuals)
+```
+Se observa que en la caja y bigote no tiene puntos atipicos y la distribución se asimila pero no es normal.
+
+```{r}
+lillie.test(fitMLM_varSales_noVar$residuals)
+```
+Se observa que el p'value es menor a 0.5 lo cual aceptamos la hipótesis nula donde la distribución no es normal.
+```{r}
+predMLM<-predict(fitMLM_varSales_noVar,newdata = datos_train)
+RMSE(predMLM,datos_train$SalePrice)
+```
+El RMSE es de 75,818.32 donde indica que, las predicciones del modelo se desvían del precio real de venta en esa cantidad. Si los precios de las casas son elevados, el error puede ser aceptable pero cuando los precios de las casas son bajos el error si puede afectar gravemente.
+
+```{r}
+plot(datos_train$SalePrice,col="blue")
+points(predMLM, col="red")
+```
+
+```{r}
+summary(datos_train$SalePrice-predMLM)
+```
+
+Se observa que los puntos rojos siguen una tendencia similar a los azules, lo que sugiere que el modelo captura en gran medida el comportamiento de los datos. Sin embargo, se observan algunas desviaciones, especialmente en valores altos, donde el modelo puede no estar prediciendo con precisión.
