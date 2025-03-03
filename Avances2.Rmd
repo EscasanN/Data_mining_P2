@@ -70,6 +70,7 @@ for (i in 1:10)
 plot(1:10, wss, type="b", xlab="Number of Clusters",  ylab="Within groups sum of squares")
 
 ```
+
 En este caso podemos observar que el numero de clusters a elegir es 3 como se observa en la gráfica ya que esta empezando a reducir su decenso a llegar a uno estable.
 
 ```{r echo=TRUE }
@@ -79,7 +80,7 @@ fviz_nbclust(na.omit(data_analysis), kmeans, method = "wss") +
 
 ```
 
-Nuevamente para confirmar que si es el numero de clusters, si se observa que actua como la grafica anterior donde el cluster k 3 no tiene un mayor desenso. 
+Nuevamente para confirmar que si es el numero de clusters, si se observa que actua como la grafica anterior donde el cluster k 3 no tiene un mayor desenso.
 
 ```{r echo=TRUE }
 
@@ -93,17 +94,20 @@ data_analysis$grupo<-km$cluster
 fviz_cluster(km, data = na.omit(data_hop) ,geom = "point", ellipse.type = "norm")
 
 ```
-Se observa que el segundo cluster se traslapa del cluster tercer y primer donde se ve que hay un segmento que si se juntan. Lo cual puede significar que las variables no son tan distintas. Cabe recalcar que el cluster 2 y 3 pueden ser distintas pero son pocas las diferencias. 
+
+Se observa que el segundo cluster se traslapa del cluster tercer y primer donde se ve que hay un segmento que si se juntan. Lo cual puede significar que las variables no son tan distintas. Cabe recalcar que el cluster 2 y 3 pueden ser distintas pero son pocas las diferencias.
+
 ```{r }
 km$size
 ```
+
 Se observa que el primer cluster tiene 653 puntos, segundo cluster tiene 144 puntos y el tercero cluster tiene 349 puntos. Esto puede significar que el primer cluster al tener mayor cantidad de datos puede que esten distribuidos de manera uniforme entre los clusters.
 
 ```{r }
 km$withinss
 ```
-Se observa que hay mayor cantidad en el cluster 2 pero como vemos en la grafica con anterioridad el numero de clusters se debe reducir a 2. 
 
+Se observa que hay mayor cantidad en el cluster 2 pero como vemos en la grafica con anterioridad el numero de clusters se debe reducir a 2.
 
 ```{r echo=TRUE }
 
@@ -117,7 +121,9 @@ data_analysis$grupo<-km$cluster
 fviz_cluster(km, data = na.omit(data_hop) ,geom = "point", ellipse.type = "norm")
 
 ```
+
 Se observa que el segundo cluster se traslapa del primer cluster donde se ve que hay un segmento que si se juntan. Lo cual puede significar que las variables no son tan distintas como habia mencionado anteriormente.
+
 ```{r }
 km$size
 ```
@@ -127,8 +133,8 @@ Se observa que el primer cluster tiene 526 puntos, segundo cluster tiene 620 pun
 ```{r }
 km$withinss
 ```
-Aunque podemos observar que withinss tiene mas diferencia puede ser comparado el segundo cluster como el doble del cluster 1. Se puede inferir que los puntos del cluster dos estan más ceparados a comparación del cluster 1. 
 
+Aunque podemos observar que withinss tiene mas diferencia puede ser comparado el segundo cluster como el doble del cluster 1. Se puede inferir que los puntos del cluster dos estan más ceparados a comparación del cluster 1.
 
 ```{r echo=TRUE }
 
@@ -139,8 +145,8 @@ geom_smooth(method="lm")+
 labs(x="cardinalidad (size)",y="magnitud (whithinss)")+
 geom_text_repel(label=rownames(m))
 ```
-Se puede inferir de los 2 grupos, no se alejan demasiado de la línea recta por lo que podríamos decir que no existen grupos anómalos.   
 
+Se puede inferir de los 2 grupos, no se alejan demasiado de la línea recta por lo que podríamos decir que no existen grupos anómalos.
 
 ```{r echo=TRUE }
 data_analysis <- as.data.frame(data_analysis)
@@ -214,8 +220,7 @@ aes(col = factor(grupo)),
 progress = FALSE)
 ```
 
-En la gráfica en general de las 38 variables no se puede observar alguna significancia, aunque podemos observar que las variable de 31 a 34 sus correlancias son muy bajas a comparación de las otras gráficas. 
-
+En la gráfica en general de las 38 variables no se puede observar alguna significancia, aunque podemos observar que las variable de 31 a 34 sus correlancias son muy bajas a comparación de las otras gráficas.
 
 ```{r echo=TRUE }
 library(flexclust)
@@ -224,15 +229,14 @@ res<-kcca(na.omit(data_hop),2)
 importance <- FeatureImpCluster(res, as.data.table(na.omit(data_hop)))
 plot(importance)
 ```
-Las variables con tasas de error más bajas (0.00) son más importantes para el modelo, ya que contribuyen menos a las predicciones incorrectas. En este caso, variables como "YearBuilt", "GarageYrBlt", "OverallQual", "TotalBsmtSF" y "GrLivArea" parecen tener un buen desempeño.
-Las variables con tasas de error más altas ( x >= 0.00) son menos importantes, ya que contribuyen más a las predicciones incorrectas. Variables como "PoolArea", "MiscVal", "X3SsnPorch" y "KitchenAbvGr" parecen tener un desempeño pobre.
+
+Las variables con tasas de error más bajas (0.00) son más importantes para el modelo, ya que contribuyen menos a las predicciones incorrectas. En este caso, variables como "YearBuilt", "GarageYrBlt", "OverallQual", "TotalBsmtSF" y "GrLivArea" parecen tener un buen desempeño. Las variables con tasas de error más altas ( x \>= 0.00) son menos importantes, ya que contribuyen más a las predicciones incorrectas. Variables como "PoolArea", "MiscVal", "X3SsnPorch" y "KitchenAbvGr" parecen tener un desempeño pobre.
 
 ```{r echo=TRUE }
 barplot(res, bycluster=T, cex.names = 0.2)
 ```
 
 Como se puede observar en los dos clusters. Al comparar podemos observar que cada uno de ellos es lo contrario. Ahora inferimos que para "SalePrice" es significativamente más alta en el Cluster 2 que en el Cluster 1, esto sugiere que las viviendas en el Cluster 2 tienden a tener precios de venta más altos que las viviendas en el Cluster 1. Si la barra para "LotArea" es más alta en el Cluster 1 que en el Cluster 2, esto sugiere que las viviendas en el Cluster 1 tienden a tener lotes más grandes que las viviendas en el Cluster 2.
-
 
 ```{r echo=TRUE}
 fviz_cluster(km,
@@ -241,13 +245,14 @@ labelsize = 6,
 choose.vars = c("SalePrice","LotArea"),
 main="k=2 grupos")
 ```
-por lo tanto se realiza una comparacion ante las dos variables de salePrice y Lot Area donde se tiende a agrupar propiedades con precios de venta bajos y áreas de lote más pequeñas. Mientras que el otro cluster tiende a agrupar propiedades con precios de venta más altos y áreas de lote más grandes.
 
+por lo tanto se realiza una comparacion ante las dos variables de salePrice y Lot Area donde se tiende a agrupar propiedades con precios de venta bajos y áreas de lote más pequeñas. Mientras que el otro cluster tiende a agrupar propiedades con precios de venta más altos y áreas de lote más grandes.
 
 ```{r  echo=TRUE }
 silkm<-silhouette(km$cluster,dist(data_analysis))
 mean(silkm[,2]) #0.45, no es la mejor particiÃ³n pero no estÃ¡ mal
 ```
+
 ```{r }
 matriz_dist<- dist(data_analysis)
 ```
@@ -258,7 +263,6 @@ plot(hc, cex=0.5, axes=FALSE) #Genera el dendograma
 rect.hclust(hc,k=2)
 ```
 
-
 ```{r }
 
 fviz_dend(hc,k=2, cex = .2, horiz = T)
@@ -267,4 +271,5 @@ fviz_dend(hc,k=2, cex = .2, horiz = T)
 ```{r }
 fviz_dend(hc, k=2, color_labels_by_k = T, cex = .4 ,type = "phylogenic", repel = T)
 ```
+
 A partir de los dos clusters elegidos, se puede examinar las características de los puntos de datos dentro de cada uno para entender sus similitudes y diferencias.
