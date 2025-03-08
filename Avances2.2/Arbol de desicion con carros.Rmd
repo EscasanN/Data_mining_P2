@@ -1,0 +1,307 @@
+---
+title: "Arboles de decisión con carros"
+output: html_document
+date: "2024-03-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cargando paquetes, message=FALSE, warning=FALSE}
+library(GGally)
+library(nortest)
+library(dplyr)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(discretization)
+```
+
+## Descripción variables carros
+
+```{r echo=FALSE}
+carros <- read.csv("../Datos/cars.csv")
+```
+
+***Número de filas:*** 205  
+***Número de atributos o columnas:*** 26 
+
+### Información de los atributos:  
+
+|Atributo:|Rango del atributo:|
+|--------:|:-------------------:|
+|1. symboling:|-3, -2, -1, 0, 1, 2, 3.|
+|2. normalized-losses:|numérico 65 hasta 256.|
+|3. make:|alfa-romero, audi, bmw, chevrolet, dodge, honda, isuzu, jaguar, mazda, mercedes-benz, mercury, mitsubishi, nissan, peugot, plymouth, porsche,  renault, saab, subaru, hastayota, volkswagen, volvo|
+|4. fuel-type:|diesel, gas.|
+|5. aspiration:|std, turbo.|
+|6. num-of-doors:|four, two.|
+|7. body-style:|hardtop, wagon, sedan, hatchback, convertible.|
+|8. drive-wheels:|4wd, fwd, rwd.|
+|9. engine-location:|front, rear.|
+|10. wheel-base:|numérico desde 86.6 hasta 120.9.|
+|11. length:|numérico desde 141.1 hasta 208.1.|
+|12. width:|numérico desde 60.3 hasta 72.3.|
+|13. height:|numérico desde 47.8 hasta 59.8.|
+|14. curb-weight:|numérico desde 1488 hasta 4066.|
+|15. engine-type:|dohc, dohcv, l, ohc, ohcf, ohcv, rotor.|
+|16. num-of-cylinders:|eight, five, four, six, three, twelve, two.|
+|17. engine-size:|numérico desde 61 to 326.|
+|18. fuel-system:|1bbl, 2bbl, 4bbl, idi, mfi, mpfi, spdi, spfi.|
+|19. bore:|numérico desde 2.54 hasta 3.94.|
+|20. stroke:|numérico desde 2.07 hasta 4.17.|
+|21. compression-ratio:|numérico desde 7 hasta 23.|
+|22. horsepower:|numérico desde 48 hasta 288.|
+|23. peak-rpm:|numérico desde 4150 hasta 6600.|
+|24. city-mpg:|numérico desde 13 hasta 49.|
+|25. highway-mpg:|numérico desde 16 hasta 54.|
+|26. price:|numérico desde 5118 hasta 45400.|
+
+
+```{r carros summary}
+summary(carros)
+```
+```{r variables, echo=FALSE}
+carros[is.na(carros$bore),"bore"]<-median(carros$bore,na.rm = T)
+carros[is.na(carros$stroke),"stroke"]<-median(carros$stroke,na.rm = T)
+carros[is.na(carros$horsepower),"horsepower"]<-median(carros$horsepower,na.rm = T)
+carros[is.na(carros$peak_rpm),"peak_rpm"]<-median(carros$peak_rpm,na.rm = T)
+carros[is.na(carros$price),"price"]<-median(carros$price,na.rm = T)
+carros$normalized_losses<-NULL
+colNum <- c("wheel_base","length","width","curb_weight","engine_size", "bore","stroke","compression_ratio","horsepower","peak_rpm","city_mpg","highway_mpg","price")
+numericas<-carros[,colNum]
+carros<-carros %>% mutate_if(is.character,as.factor)
+#Convirtiendo a factores
+
+```
+## Árbol de decisión con todas las variables  
+
+Veamos cuales son las variables más importantes para determinar el consumo de millas por galón que es nuestra variable respuesta.
+
+```{r arbol exploratorio}
+arbol1 <- rpart(city_mpg~.,data = carros)
+rpart.plot(arbol1)
+```
+Como podemos observar hay 3 variables importantes en el conjunto de datos, el consumo de millas por galón en carretera, la marca y el sistema ed combustible.   
+
+## Conjuntos de entrenamiento y prueba.   
+
+Se separarán en 70% de los datos en el conjunto de entrenamiento y 30% en el conjunto de prueba, usando un muestreo aleatorio simple.   
+
+```{r trainTest}
+set.seed(245)
+porciento <- 0.7
+corte <- sample(nrow(carros),nrow(carros)*porciento)
+train <- carros[corte,]
+test <- carros[-corte,]
+test_resp <- test$city_mpg
+test$city_mpg <- NULL
+```
+
+## Modelo de árbol de regresión con parámetros por defecto.  
+
+```{r modelo de regresion sin tunear}
+modelo1 <- rpart(city_mpg~.,data = train)
+rpart.plot(modelo1)
+```
+  
+Para este modelo solo se tomó en cuenta la variable millas por galón en carretera. Hagamos la predicción:
+
+```{r prediccion modelo1}
+predModelo1 <- predict(modelo1, newdata = test)
+rmseModelo1test<-RMSE(predModelo1,test_resp)
+mseModelo1test<-mean((predModelo1 - test_resp)^2)
+predModelo1Train <- predict(modelo1, newdata = train[,-23])
+rmseModelo1train<-RMSE(predModelo1Train,train$city_mpg)
+mseModelo1train<-mean((predModelo1Train - train$city_mpg)^2) 
+```
+
+El error medio cuadrado es `r mseModelo1test` en el conjunto de prueba, mientras que el error de entrenamiento es   `r mseModelo1train`.
+
+```{r grafico de la predicción}
+plot(test_resp,col="blue", main="Predicciones vs valores originales")
+points(predModelo1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+  
+No lo hizo tan mal el modelo, hagamos un modelo con validación cruzada.  
+
+## Modelo con validación cruzada y tuneando parámetros  
+```{r modelo2 validación cruzada}
+controlcv <- trainControl(method = "cv",number = 10)
+modelo2<- train(city_mpg~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo2$finalModel)
+```
+```{r prediccion modelo2}
+predModelo2 <- predict(modelo2, newdata = test)
+rmseModelo2test<-RMSE(predModelo2,test_resp)
+mseModelo2test<-mean((predModelo2 - test_resp)^2)
+
+predModelo2Train <- predict(modelo2, newdata = train[,-23])
+rmseModelo2train<-RMSE(predModelo2Train,train$city_mpg)
+mseModelo2train<-mean((predModelo2Train - train$city_mpg)^2)
+
+```
+
+El error medio cuadrado es `r mseModelo2test` en el conjunto de prueba, mientras que el error de entrenamiento es   `r mseModelo2train`.
+
+```{r grafico de la predicción modelo2}
+plot(test_resp,col="blue", main="Predicciones vs valores originales")
+points(predModelo1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+### ¿Qué parametros podemos tunnear?  
+Podemos tunear los siguientes parámetros   
+```{r tunning de modelo}
+modelLookup("rpart")
+modelLookup("rpart2")
+```
+Trabajemos con rpart2 para probar varias profundidades del árbol y ver cual es el mejor modelo.  
+```{r tunneando la profundidad del arbol}
+
+profundidades <- data.frame(c(1,4,6,8,10))
+names(profundidades)<-"maxdepth"
+system.time(
+modelo3<-train(city_mpg~., 
+                data=train, 
+                method="rpart2",
+                #tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo3
+plot(modelo3)
+```
+  
+  Como se puede observar luego de una profundidad de 6 no se mejora el rmse por lo que es el mejor valor de profundidad. Usemos grid serch cross validation para un mejor tuneo de parámetros.  
+  
+```{r tuneando el modelo3 GSCV}
+profundidades <- expand.grid(maxdepth = 2:10)
+
+system.time (modelo3.1<-train(city_mpg~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo3.1
+plot(modelo3.1)
+rpart.plot(modelo3.1$finalModel)
+```
+  
+Según el modelo greedy podemos usar todavía menos profundidad. Vamos a predecir con el modelo 3.1  
+
+```{r prediccion modelo3.1}
+predModelo3.1 <- predict(modelo3.1, newdata = test)
+rmseModelo3.1test<-RMSE(predModelo3.1,test_resp)
+mseModelo3.1test<-mean((predModelo3.1 - test_resp)^2)
+
+predModelo3.1Train <- predict(modelo3.1, newdata = train[,-23])
+rmseModelo3.1train<-RMSE(predModelo3.1Train,train$city_mpg)
+mseModelo3.1train<-mean((predModelo3.1Train - train$city_mpg)^2)
+
+```
+
+El error medio cuadrado es `r mseModelo3.1test` en el conjunto de prueba, mientras que el error de entrenamiento es   `r mseModelo3.1train`.
+
+```{r grafico de la predicción modelo3}
+plot(test_resp,col="blue", main="Predicciones vs valores originales")
+points(predModelo3.1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+  
+## Comparación de modelos  
+  
+```{r comparación de modelos}
+CompModelos<-c(rmseModelo1test,rmseModelo2test,rmseModelo3.1test)
+names(CompModelos)<-c("Modelo1","Modelo2","Modelo3")
+CompModelos
+```
+  
+## Árbol de clasificación  
+
+Hagamos un árbol de clasificación para saber si un vehículo es consume poco, promedio o es gastón. Para esto hay que hacer una variable categórica que tenga 3 categorías poco consumo, consumo medio y mucho consumo.  **¿Hasta que valores de la variable city_mpg llega cada categoría?**  
+```{r discretizando la variable respuesta}
+categorias <-cut(carros$city_mpg, breaks=c(quantile(carros$city_mpg, probs = seq(0, 1, by = 0.33))), 
+      labels=c("gaston","estandar","economico"), include.lowest=TRUE,right = T)
+carros$consumoCat<-categorias
+carros[carros$city_mpg<=13,"consumoCat"]<-"gaston"
+carros[carros$city_mpg>=31.6,"consumoCat"]<-"economico"
+```
+
+Luego de discretizar la variable millas por galon usando los cuartiles quedan las categorías en la siguiente proporpoción.  
+```{r variable categrica}
+table(carros$consumoCat)
+```
+
+### Modelo de Clasificación  
+Hagamos un modelo de clasificación, y probemos con varias profundidades.   
+Hagamos nuevamente los conjuntos de entrenamiento y prueba con la nueva variable respuesta:   
+
+```{r train y test con cat}
+train$consumoCat<-carros[corte,"consumoCat"]
+test$consumoCat<-carros[-corte,"consumoCat"]
+train$city_mpg<-NULL
+test$city_mpg<-NULL
+``` 
+
+### Modelo1 de clasificación  
+
+Como se puede observar en este modelo están involucradas las variables de cantidad de caballos de fuerza y la de consumo de millas por galón  en carretera.  
+
+```{r modelo1_class}
+modelo1_clas <- rpart(consumoCat~.,data = train,method = "class")
+rpart.plot(modelo1_clas)
+```
+
+**Predicción con el modelo**  
+```{r prediccion modelo1 clas}
+predm1C <- predict(modelo1_clas,newdata = test)
+predm1C <-apply(predm1C, 1, function(x) colnames(predm1C)[which.max(x)])
+predm1C <- as.factor(predm1C)
+cfm1c <- confusionMatrix(test$consumoCat, predm1C)
+```
+Como se puede observar este modelo tiene un accuracy de 83%. Hagamos un modelo probando varias profundidades para ver si podemos mejorar el accuracy.  
+
+```{r modelo2C}
+profundidades <- expand.grid(maxdepth = 2:10)
+
+system.time (modelo2C<-train(consumoCat~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "Accuracy",
+                na.action = na.pass
+               )
+)
+modelo2C
+rpart.plot(modelo2C$finalModel)
+```
+```{r prediccion modelo2 clas}
+predm2C <- predict(modelo2C,newdata = test)
+predm2C <- as.factor(predm2C)
+cfm2c <- confusionMatrix(test$consumoCat, predm2C)
+cfm2c
+```
+Como se puede observar el accuracy no mejoró mucho por lo que el mejor modelo es un árbo con profundidad de 3.  
+
+```{r guardando carros}
+save(carros,file = "../Datos/carros.RData")
+```
+
