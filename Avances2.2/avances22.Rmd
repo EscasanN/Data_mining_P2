@@ -21,7 +21,7 @@ library(caret)
 library(discretization)
 ```
 
-
+# 1.Conjuntos de Entrenamiento y Prueba
 ```{r }
 datos <-read.csv("test.csv")
 mergeprice <- read.csv("sample_submission.csv")
@@ -35,11 +35,14 @@ datos$SalePrice <- NULL
 ```
 Leemos el conjunto de datos de las casas a observar. 
 
+2.Elabore un árbol de regresión para predecir el precio de las casas usando todas las variables
+
 ```{r pressure, echo=FALSE}
 modelo1 <- rpart(SalePrice~.,data = train)
 rpart.plot(modelo1)
 ```
 
+3. Úselo para predecir y analice el resultado. ¿Qué tal lo hizo?
 ```{r }
 predModelo1 <- predict(modelo1, newdata = datos)
 rmseModelo1test<-RMSE(predModelo1,mergeprice)
@@ -80,6 +83,10 @@ modelo3
 plot(modelo3)
 ```
 Si tuneamos la profundida podemos ver una profundida máxima de 10. En este caso solo probaremos profundidades menores al árbol anterior. 
+
+4. Haga, al menos, 3 modelos más, cambiando el parámetro de la profundidad del árbol. ¿Cuál
+es el mejor modelo para predecir el precio de las casas?
+
 ```{r  echo=FALSE}
 modelo2 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth = 2))
 rpart.plot(modelo2)
@@ -95,4 +102,7 @@ rpart.plot(modelo3)
 modelo4 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth=3))
 rpart.plot(modelo4)
 ```
+5. Compare los resultados con el modelo de regresión lineal de la hoja anterior, ¿cuál lo hizo
+mejor?
+
 La gráfica que tiene una profundida de 3 puede predecir mejor el precio de las casas debido a que en la última profundida de la primera gráfica es solo utilizada para clasificar identificadores lo cual no nos provee una información valiosa lo cual podemos quitar. 
