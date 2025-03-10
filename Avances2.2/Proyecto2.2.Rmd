@@ -1,0 +1,109 @@
+---
+title: "Proyecto2"
+author: "Andre Jo 22199"
+date: "2025-03-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cargando paquetes, message=FALSE, warning=FALSE}
+library(GGally)
+library(nortest)
+library(dplyr)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(discretization)
+```
+
+# 1.Conjuntos de Entrenamiento y Prueba
+```{r }
+datos <-read.csv("test.csv")
+mergeprice <- read.csv("sample_submission.csv")
+train <-read.csv("train.csv")
+
+datos <- merge(datos, mergeprice)
+
+
+mergeprice <- datos$SalePrice
+datos$SalePrice <- NULL
+```
+Leemos el conjunto de datos de las casas a observar. 
+
+2.Elabore un árbol de regresión para predecir el precio de las casas usando todas las variables
+
+```{r pressure, echo=FALSE}
+modelo1 <- rpart(SalePrice~.,data = train)
+rpart.plot(modelo1)
+```
+
+3. Úselo para predecir y analice el resultado. ¿Qué tal lo hizo?
+```{r }
+predModelo1 <- predict(modelo1, newdata = datos)
+rmseModelo1test<-RMSE(predModelo1,mergeprice)
+mseModelo1test<-mean((predModelo1 - mergeprice)^2)
+predModelo1Train <- predict(modelo1, newdata = train)
+rmseModelo1train<-RMSE(predModelo1Train,train$SalePrice)
+mseModelo1train<-mean((predModelo1Train - train$SalePrice)^2) 
+
+rmseModelo1test
+
+rmseModelo1train
+```
+Se observa que el rmse del modelo de prueba es de 38464.11 y el rmse del modelo de entraniemto es de 77161.11 lo cual sus valores son muy altos lo cual puede indicar un overfitting de los datos. 
+
+
+
+```{r }
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Se oberva en la gráfica y efectivamente se puede respaldar el overfitting en los datos, como se observa con los puntos rojos, se observa lineas de puntos mientras que en los puntos azules se van esparciendo no como la linea de puntos rojos. 
+```{r }
+controlcv <- trainControl(method = "cv",number = 10)
+profundidades <- data.frame(c(1,4,6,8,10,12,14))
+names(profundidades)<-"maxdepth"
+system.time(
+modelo3<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo3
+plot(modelo3)
+```
+Si tuneamos la profundida podemos ver una profundida máxima de 10. En este caso solo probaremos profundidades menores al árbol anterior. 
+
+4. Haga, al menos, 3 modelos más, cambiando el parámetro de la profundidad del árbol. ¿Cuál
+es el mejor modelo para predecir el precio de las casas?
+
+```{r  echo=FALSE}
+modelo2 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth = 2))
+rpart.plot(modelo2)
+```
+
+```{r  echo=FALSE}
+modelo3 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth=1))
+rpart.plot(modelo3)
+```
+
+
+```{r  echo=FALSE}
+modelo4 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth=3))
+rpart.plot(modelo4)
+```
+5. Compare los resultados con el modelo de regresión lineal de la hoja anterior, ¿cuál lo hizo
+mejor?
+
+La gráfica que tiene una profundida de 3 puede predecir mejor el precio de las casas debido a que en la última profundida de la primera gráfica es solo utilizada para clasificar identificadores lo cual no nos provee una información valiosa lo cual podemos quitar. 
+

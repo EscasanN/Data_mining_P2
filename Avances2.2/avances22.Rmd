@@ -1,6 +1,6 @@
 ---
 title: "Avances Pr2_Ad2"
-author: "Andre Jo"
+author: "Andre Jo 22199, Nelson Escalante 22046"
 output: html_document
 date: "2025-03-07"
 ---
@@ -8,7 +8,6 @@ date: "2025-03-07"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 ```{r cargando paquetes, message=FALSE, warning=FALSE}
 library(GGally)
@@ -19,9 +18,10 @@ library(rpart)
 library(rpart.plot)
 library(caret)
 library(discretization)
+library(randomForest)
 ```
 
-# 1.Conjuntos de Entrenamiento y Prueba
+
 ```{r }
 datos <-read.csv("test.csv")
 mergeprice <- read.csv("sample_submission.csv")
@@ -33,11 +33,53 @@ datos <- merge(datos, mergeprice)
 mergeprice <- datos$SalePrice
 datos$SalePrice <- NULL
 ```
-Leemos el conjunto de datos de las casas a observar. 
+
+# 1.Conjuntos de Entrenamiento y Prueba
+```{r }
+
+#Variables Numericos 
+#datos[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+ #                "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2", 
+  #               "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", 
+    #              "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+   #              "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces"
+  #               , "GarageCars", "GarageArea", "WoodDeckSF" , #"OpenPorchSF", "EnclosedPorch"
+ #                , "X3SsnPorch", "ScreenPorch", "PoolArea", #"MiscVal", "MoSold", "YrSold",
+#                 "SalePrice")]
+
+
+
+
+datos[] <- lapply(datos, function(x) {
+  if (is.numeric(x)) {
+    # For numeric columns, replace NAs with the median
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+    # For factor or character columns, replace NAs with the mode (most frequent value)
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+
+train[] <- lapply(train, function(x) {
+  if (is.numeric(x)) {
+    # For numeric columns, replace NAs with the median
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+    # For factor or character columns, replace NAs with the mode (most frequent value)
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+```
+
+Leemos el conjunto de datos de las casas a observar. Tambien se puede observar que las variables categoricas tienen valores nulos (NA) por lo cual las reemplazamos por valores que son más frecuentes usando la modo. Por otro lado los númericos que tiene nulos se les aplica la media. Todo eto e aplicado por el conjunto de dato de entrenamiento y de prueba
 
 2.Elabore un árbol de regresión para predecir el precio de las casas usando todas las variables
 
-```{r pressure, echo=FALSE}
+```{r echo=FALSE}
 modelo1 <- rpart(SalePrice~.,data = train)
 rpart.plot(modelo1)
 ```
@@ -51,12 +93,12 @@ predModelo1Train <- predict(modelo1, newdata = train)
 rmseModelo1train<-RMSE(predModelo1Train,train$SalePrice)
 mseModelo1train<-mean((predModelo1Train - train$SalePrice)^2) 
 
-rmseModelo1test
+mseModelo1test
 
-rmseModelo1train
+mseModelo1train
 ```
-Se observa que el rmse del modelo de prueba es de 38464.11 y el rmse del modelo de entraniemto es de 77161.11 lo cual sus valores son muy altos lo cual puede indicar un overfitting de los datos. 
-
+En cuanto al error medio cuadrado es 5953836826 en el modelo de prueba y 1479488059 en el modelo de entrenamiento.Además,
+se observa que el rmse del modelo de prueba es de 38464.11 y el rmse del modelo de entraniemto es de 77161.11 lo cual sus valores son muy altos lo cual puede indicar un overfitting de los datos. 
 
 
 ```{r }
@@ -87,22 +129,381 @@ Si tuneamos la profundida podemos ver una profundida máxima de 10. En este caso
 4. Haga, al menos, 3 modelos más, cambiando el parámetro de la profundidad del árbol. ¿Cuál
 es el mejor modelo para predecir el precio de las casas?
 
+## Modelo con una profundiad a 2
 ```{r  echo=FALSE}
 modelo2 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth = 2))
 rpart.plot(modelo2)
 ```
 
+```{r }
+predModelo2 <- predict(modelo2, newdata = datos)
+rmseModelo2test<-RMSE(predModelo2,mergeprice)
+mseModelo2test<-mean((predModelo2 - mergeprice)^2)
+predModelo2Train <- predict(modelo2, newdata = train)
+rmseModelo2train<-RMSE(predModelo2Train,train$SalePrice)
+mseModelo2train<-mean((predModelo2Train - train$SalePrice)^2) 
+
+mseModelo2test
+
+mseModelo2train
+```
+```{r }
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo2, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Se observa que hay overfitting en el conjunto de datos pero esta vez, la segunda linea si puede predecir ciertoes conjuntos de datos mientras que la primera y segunda linea son muy pocos que puede predecir.
+
+## Modelo con una profundiad 1
 ```{r  echo=FALSE}
 modelo3 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth=1))
 rpart.plot(modelo3)
 ```
 
 
+```{r }
+predModelo3 <- predict(modelo3, newdata = datos)
+rmseModelo3test<-RMSE(predModelo3,mergeprice)
+mseModelo3test<-mean((predModelo3 - mergeprice)^2)
+predModelo3Train <- predict(modelo3, newdata = train)
+rmseModelo3train<-RMSE(predModelo3Train,train$SalePrice)
+mseModelo3train<-mean((predModelo3Train - train$SalePrice)^2) 
+
+mseModelo3test
+
+mseModelo3train
+```
+
+```{r }
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo3, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Al igual que la gràfica anterior hay overfitting de datos.
+
+## Modelo con una profundiad 3
+
 ```{r  echo=FALSE}
 modelo4 <- rpart(SalePrice~., data = train, control = rpart.control(maxdepth=3))
 rpart.plot(modelo4)
 ```
+
+```{r }
+predModelo4 <- predict(modelo4, newdata = datos)
+rmseModelo4test<-RMSE(predModelo4,mergeprice)
+mseModelo4test<-mean((predModelo4 - mergeprice)^2)
+predModelo4Train <- predict(modelo4, newdata = train)
+rmseModelo4train<-RMSE(predModelo4Train,train$SalePrice)
+mseModelo4train<-mean((predModelo4Train - train$SalePrice)^2) 
+
+mseModelo4test
+
+mseModelo4train
+```
+
+```{r }
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo4, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
 5. Compare los resultados con el modelo de regresión lineal de la hoja anterior, ¿cuál lo hizo
 mejor?
 
-La gráfica que tiene una profundida de 3 puede predecir mejor el precio de las casas debido a que en la última profundida de la primera gráfica es solo utilizada para clasificar identificadores lo cual no nos provee una información valiosa lo cual podemos quitar. 
+```{r comparación de modelos}
+CompModelos<-c(rmseModelo2test,rmseModelo3test,rmseModelo4test, rmseModelo1test)
+names(CompModelos)<-c("Modelo1","Modelo2","Modelo3", "Modelo Anterior (1)")
+CompModelos
+```
+
+La gráfica que tiene una profundida de 3 puede predecir mejor el precio de las casas debido a que en la última profundida de la primera gráfica es solo utilizada para clasificar identificadores lo cual no nos provee una información valiosa lo cual podemos quitar. Aunque vemos que todos los modelos tienen overfitting si se puede predecir que modelo puede predecir el precio de las cosas comparando con el rmse. A comparación con la profundidad 4 observamos que hay los dos tienen ovefitting de datos pero se observa que el modelo anterior tiene un rmse mejor a comparación con el modelo 3 para poder predecir el precio de las casas.
+
+
+
+## A continuaciòn se presenta los problemas, 6,7,8 y 9 en el siguiente link
+## https://github.com/EscasanN/Data_mining_P2/blob/master/Avances2.2/arbol_clasificacion.ipynb
+
+
+
+
+10. Entrene un modelo usando validación cruzada, prediga con él. ¿le fue mejor que al modelo anterior?
+```{r  echo=FALSE}
+controlcv <- trainControl(method = "cv",number = 10)
+modelo5<- train(SalePrice~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo5$finalModel)
+```
+
+```{r prediccion modelo5}
+predModelo5 <- predict(modelo5, newdata = datos)
+rmseModelo5test<-RMSE(predModelo5,mergeprice)
+mseModelo5test<-mean((predModelo5 - mergeprice)^2)
+
+predModelo5Train <- predict(modelo5, newdata = train)
+rmseModelo5train<-RMSE(predModelo5Train,train$SalePrice)
+mseModelo5train<-mean((predModelo5Train - train$SalePrice)^2)
+
+```
+
+```{r }
+mseModelo5test
+```
+
+
+```{r }
+
+mseModelo5train
+```
+```{r grafico de la predicción modelo5}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo5, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+No Dio una mejora con la gráfica anterior. En base a los datos mostrados, se observa que el modelo no cruzado y cruzado tienen overfitting los datos lo cual solo podemos comparar con el rmse en la cual el modelo no cruzado tiene mayor rmse.
+
+```{r comparación de modelos 1,4,5}
+CompModelos<-c(rmseModelo1test, rmseModelo4test ,rmseModelo5test)
+names(CompModelos)<-c("Modelo no Cruzado", "Modelo no Cruzado con profundiad 3","Modelo Cruzado")
+CompModelos
+```
+
+
+```{r }
+
+profundidades <- data.frame(c(1,4,6,8,10,12,13))
+names(profundidades)<-"maxdepth"
+system.time(
+modelo6<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                #tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+
+plot(modelo6)
+```
+La gráfica de profundidades muestra que desde la profundiad 4 escala hasta llegar a la profundidad 6 lo cual hay un gran cambio y conforme llegamos a fondo, puede tener una profundidad de 10 donde ya que no se mejora.
+
+
+```{r }
+profundidades <- expand.grid(maxdepth = 2:14)
+
+system.time (modelo6.1<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo6.1
+plot(modelo6.1)
+rpart.plot(modelo6.1$finalModel)
+```
+De acuerdo con el modelo de greedy, la profundidad es la misma lo cual vamos a utilizar una profundidad de 4 para realizar las los modelos.
+
+
+```{r prediccionmodelo6.1}
+predModelo6.1 <- predict(modelo6.1, newdata = datos)
+rmseModelo6.1test<-RMSE(predModelo6.1,mergeprice)
+mseModelo6.1test<-mean((predModelo6.1 - mergeprice)^2)
+
+predModelo6.1Train <- predict(modelo6.1, newdata = train)
+rmseModelo6.1train<-RMSE(predModelo6.1Train,train$SalePrice)
+mseModelo6.1train<-mean((predModelo6.1Train - train$SalePrice)^2)
+
+```
+
+```{r }
+mseModelo6.1test
+```
+
+```{r prediccion }
+
+mseModelo6.1train
+```
+```{r grafico de la predicción modelo6.1}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo6.1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Se observa que todavia existe overfitting en la gráfica observada.
+
+```{r }
+profundidades <- expand.grid(maxdepth = 2:15)
+
+system.time (modelo7.1<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo7.1
+plot(modelo7.1)
+rpart.plot(modelo7.1$finalModel)
+```
+
+```{r }
+predModelo7.1 <- predict(modelo7.1, newdata = datos)
+rmseModelo7.1test<-RMSE(predModelo7.1,mergeprice)
+mseModelo7.1test<-mean((predModelo7.1 - mergeprice)^2)
+
+predModelo7.1Train <- predict(modelo7.1, newdata = train)
+rmseModelo7.1train<-RMSE(predModelo7.1Train,train$SalePrice)
+mseModelo7.1train<-mean((predModelo7.1Train - train$SalePrice)^2)
+
+```
+
+```{r prediccion modelo7}
+mseModelo7.1test
+```
+
+```{r}
+
+mseModelo7.1train
+```
+```{r grafico de la predicción modelo7.1}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo7.1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+
+
+```{r }
+profundidades <- expand.grid(maxdepth = 2:20)
+
+system.time (modelo8<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo8
+plot(modelo8)
+rpart.plot(modelo8$finalModel)
+```
+
+```{r prediccion modelo8}
+predModelo8 <- predict(modelo8, newdata = datos)
+rmseModelo8test<-RMSE(predModelo8,mergeprice)
+mseModelo8test<-mean((predModelo8 - mergeprice)^2)
+
+predModelo8Train <- predict(modelo8, newdata = train)
+rmseModelo8train<-RMSE(predModelo8Train,train$SalePrice)
+mseModelo8train<-mean((predModelo8Train - train$SalePrice)^2)
+
+```
+
+```{r }
+mseModelo8test
+```
+
+```{r }
+
+mseModelo8train
+```
+```{r }
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo8, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+```{r }
+profundidades <- expand.grid(maxdepth = 2:3)
+
+system.time (modelo9<-train(SalePrice~., 
+                data=train, 
+                method="rpart2",
+                tuneLength = 10,
+                tuneGrid = profundidades,
+                trControl = controlcv,
+                metric = "RMSE",
+                na.action = na.pass
+               )
+)
+modelo9
+plot(modelo9)
+rpart.plot(modelo9$finalModel)
+```
+
+```{r prediccion modelo9}
+predModelo9 <- predict(modelo9, newdata = datos)
+rmseModelo9test<-RMSE(predModelo9,mergeprice)
+mseModelo9test<-mean((predModelo9 - mergeprice)^2)
+
+predModelo9Train <- predict(modelo9, newdata = train)
+rmseModelo9train<-RMSE(predModelo9Train,train$SalePrice)
+mseModelo9train<-mean((predModelo9Train - train$SalePrice)^2)
+
+```
+
+```{r}
+mseModelo9test
+```
+
+```{r }
+
+mseModelo9train
+```
+
+```{r grafico de la predicción modelo9}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo9, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+
+
+```{r}
+
+modeloRF1<-randomForest(SalePrice~.,data=train)
+prediccionRF1<-predict(modeloRF1,newdata = datos)
+rmseModelo10test<-RMSE(prediccionRF1,mergeprice)
+mseModelo10test<-mean((prediccionRF1 - mergeprice)^2)
+
+prediccionRF1Train<-predict(modeloRF1,newdata = datos)
+rmseModelo10train<-RMSE(prediccionRF1Train,train$SalePrice)
+mseModelo10train<-mean((prediccionRF1Train - train$SalePrice)^2)
+
+```
+
+```{r}
+mseModelo10test
+```
+
+```{r }
+
+mseModelo10train
+```
+
+```{r grafico de la predicción modelo10}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(prediccionRF1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+```{r comparación de modelos 6,7,8,910}
+CompModelos<-c(rmseModelo6.1test,rmseModelo7.1test,rmseModelo8test,rmseModelo9test,rmseModelo10test)
+names(CompModelos)<-c("Tuneado Modelo1","Tuneado Modelo2","Tuneado Modelo3", "Tuneado Modelo4","Modelo Random Forest")
+CompModelos
+```
+
+Con la comparación de los 4 modelos utilizados con tuneo y el modelo de Random Forest podemos observar gráficamente con el modelo de Random Forest que tiene pocas asimilacióes con el modelo pero observamos que los modelo tuneado tienen mayor rmse a comparación del modelo de Random Forest. POr lo tanto inferimos aunque tenga menor rmse que el modelo 1 y 2,  observamos que es mejor tener el modelo de Random Forest ya que no tiene overfitting de datos y esta cerca del rango de los modelos de tuneado.
