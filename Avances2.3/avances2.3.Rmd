@@ -1,0 +1,147 @@
+---
+title: "Avances 2.3"
+author: "Andre Jo 22199"
+date: "2025-03-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Importacion librerias, warning=FALSE, echo=FALSE,  message=FALSE}
+library(e1071)
+library(randomForest)
+library(caret)
+library(GGally)
+library(nortest)
+library(dplyr)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(discretization)
+```
+
+```{r echo=FALSE}
+train <- read.csv("train.csv")
+mergeprice <- read.csv("sample_submission.csv")
+
+data_analysis <- read.csv("test.csv")
+
+data_analysis <- merge(data_analysis, mergeprice, by="Id")
+
+
+```
+
+```{r echo=FALSE}
+modelo<-naiveBayes(train$SalePrice~., data=train)
+
+predBayes <- predict(modelo, newdata= data_analysis[,1:80] )
+
+predBayes<- as.numeric(as.character(predBayes))
+
+  
+```
+
+
+```{r echo=FALSE}
+plot(data_analysis$SalePrice, col="red") 
+points(predBayes, col="blue")
+  
+```
+Observamos que en la parte inferior se observa un patrón de overfitting pero en la parte de arriba no tanto. Además de eso, el modelo acertó pocas veces con la concentración de datos que existe en el rango de SalesPrice de 150,000 a 200,000.
+```{r}
+
+
+EMA <- (mean(data_analysis$SalePrice-predBayes, na.rm = T)^2)
+EMA
+```
+
+```{r}
+RMSE <- sqrt(mean((data_analysis$SalePrice - predBayes)^2, na.rm = TRUE))
+RMSE
+```
+A comparación del RMSE del modelo Naive Bayes, observamos que pertenece al rango de los modelos presentados anteriormente. (entrega pasada)
+
+
+
+```{r echo=FALSE}
+datos <-read.csv("test.csv")
+mergeprice <- read.csv("sample_submission.csv")
+train <-read.csv("train.csv")
+
+datos <- merge(datos, mergeprice)
+
+
+mergeprice <- datos$SalePrice
+datos$SalePrice <- NULL
+
+datos[] <- lapply(datos, function(x) {
+  if (is.numeric(x)) {
+    # For numeric columns, replace NAs with the median
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+    # For factor or character columns, replace NAs with the mode (most frequent value)
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+
+train[] <- lapply(train, function(x) {
+  if (is.numeric(x)) {
+    # For numeric columns, replace NAs with the median
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+    # For factor or character columns, replace NAs with the mode (most frequent value)
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+```
+
+```{r}
+
+modeloRF1<-randomForest(SalePrice~.,data=train)
+prediccionRF1<-predict(modeloRF1,newdata = datos)
+rmseModelo10test<-RMSE(prediccionRF1,mergeprice)
+mseModelo10test<-mean((prediccionRF1 - mergeprice)^2)
+
+prediccionRF1Train<-predict(modeloRF1,newdata = datos)
+rmseModelo10train<-RMSE(prediccionRF1Train,train$SalePrice)
+mseModelo10train<-mean((prediccionRF1Train - train$SalePrice)^2)
+
+```
+
+
+```{r}
+mseModelo10test
+```
+
+```{r }
+
+rmseModelo10test
+```
+
+
+```{r grafico de la predicción modelo10}
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(prediccionRF1, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+
+De las entregas anteriores, se puede obeservar que la gráfica que más relación tiene es el modelo de Random Forest ya que no es un modelo que este presente el overfitting de los datos. 
+
+RMSE DE LOS SIGUIENTES MODELOS
+
+```{r}
+
+CompModelos<-c( 76444.36,76444.36,76444.36,68855.19,69164.43)
+names(CompModelos)<-c("Tuneado Modelo1","Tuneado Modelo2","Tuneado Modelo3", "Tuneado Modelo4","Modelo Random Forest")
+
+CompModelos
+```
+
+De acuerdo con la siguiente tabla a comparar y el rmse del modelo de prueba con Naive Bayes, obtenemos un RMSE de  70237.08 lo cual esta cerca ante los modelos de Random Forest y el Modelo 4. Además no observamos que la gráfica no tenga overfitting lo cual se relaciona con el modelo de Random Forest, pero observamos que Naive Bayes no acierta con los puntos que estan concentrados en el rango de 150,000 a 200,000 de la variable salePrice. Esto significa que Random Forest sigue siendo el modelo con más certeza a comparación de los otros modelos.
