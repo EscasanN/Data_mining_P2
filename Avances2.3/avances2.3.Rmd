@@ -5,7 +5,7 @@ date: "2025-03-14"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -145,3 +145,253 @@ CompModelos
 ```
 
 De acuerdo con la siguiente tabla a comparar y el rmse del modelo de prueba con Naive Bayes, obtenemos un RMSE de  70237.08 lo cual esta cerca ante los modelos de Random Forest y el Modelo 4. Además no observamos que la gráfica no tenga overfitting lo cual se relaciona con el modelo de Random Forest, pero observamos que Naive Bayes no acierta con los puntos que estan concentrados en el rango de 150,000 a 200,000 de la variable salePrice. Esto significa que Random Forest sigue siendo el modelo con más certeza a comparación de los otros modelos.
+
+
+
+
+8.Haga un modelo usando validación cruzada, compare los resultados de este con los del modelo anterior. ¿Cuál funcionó mejor?
+```{r  }
+controlcv <- trainControl(method = "cv",number = 10)
+modelo5<- train(SalePrice~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo5$finalModel)
+```
+
+```{r}
+
+predModelo5 <- predict(modelo5, newdata = datos)
+rmseModelo5test<-RMSE(predModelo5,mergeprice)
+mseModelo5test<-mean((predModelo5 - mergeprice)^2)
+
+predModelo5Train <- predict(modelo5, newdata = train)
+rmseModelo5train<-RMSE(predModelo5Train,train$SalePrice)
+mseModelo5train<-mean((predModelo5Train - train$SalePrice)^2)
+
+```
+
+
+```{r}
+
+mseModelo5test
+## [1] 3998029436
+
+```
+
+
+
+```{r}
+
+
+rmseModelo5test
+
+```
+
+
+```{r}
+
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo5, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+
+```
+
+ La gráfica mostrada con validación cruzada tiene datos sobreajustados a comparación de la gráfica utilizando Naive Bayes no obervamos ese patrón. Por otro lado observamos que el RMSE del modelo de validación cruzada es menor a comparación del Naive Bayes. Por lo tanto, se debe tomar en cuenta que el modelo que funciona más en estos casos es el modelo Naive Bayes debido a que no tiene overfitting de datos lo cual no se ajusta demasiado con el modelo.
+
+9. Tanto para los modelos de regresión como de clasificación, pruebe con varios valores de los hiperparámetros, use el mejor modelo del tuneo, ¿Mejoraron los modelos? Explique
+
+
+```{r }
+controlcv <- trainControl(method = "repeatedcv",number = 8, repeats = 3)
+modelo5<- train(SalePrice~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo5$finalModel)
+```
+
+
+```{r}
+
+predModelo5 <- predict(modelo5, newdata = datos)
+rmseModelo5test<-RMSE(predModelo5,mergeprice)
+mseModelo5test<-mean((predModelo5 - mergeprice)^2)
+
+predModelo5Train <- predict(modelo5, newdata = train)
+rmseModelo5train<-RMSE(predModelo5Train,train$SalePrice)
+mseModelo5train<-mean((predModelo5Train - train$SalePrice)^2)
+
+```
+
+
+```{r}
+
+mseModelo5test
+## [1] 3998029436
+
+```
+
+
+```{r}
+
+rmseModelo5test
+
+```
+
+
+```{r}
+
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo5, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+
+```
+
+```{r  }
+controlcv <- trainControl(method = "boot",number = 20)
+modelo5<- train(SalePrice~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo5$finalModel)
+```
+
+
+```{r}
+
+predModelo5 <- predict(modelo5, newdata = datos)
+rmseModelo5test<-RMSE(predModelo5,mergeprice)
+mseModelo5test<-mean((predModelo5 - mergeprice)^2)
+
+predModelo5Train <- predict(modelo5, newdata = train)
+rmseModelo5train<-RMSE(predModelo5Train,train$SalePrice)
+mseModelo5train<-mean((predModelo5Train - train$SalePrice)^2)
+
+```
+
+
+```{r}
+
+mseModelo5test
+## [1] 3998029436
+
+```
+
+
+```{r}
+
+rmseModelo5test
+## [1] 63229.97
+
+```
+
+
+```{r}
+
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo5, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+
+
+```
+
+```{r  echo=FALSE}
+controlcv <- trainControl(method = "adaptive_cv")
+modelo5<- train(SalePrice~.,data=train,
+            method="rpart",
+            trControl=controlcv,
+            na.action=na.pass
+            )
+rpart.plot(modelo5$finalModel)
+```
+
+
+```{r}
+
+predModelo5 <- predict(modelo5, newdata = datos)
+rmseModelo5test<-RMSE(predModelo5,mergeprice)
+mseModelo5test<-mean((predModelo5 - mergeprice)^2)
+
+predModelo5Train <- predict(modelo5, newdata = train)
+rmseModelo5train<-RMSE(predModelo5Train,train$SalePrice)
+mseModelo5train<-mean((predModelo5Train - train$SalePrice)^2)
+
+```
+
+
+```{r}
+
+mseModelo5test
+## [1] 3998029436
+
+```
+
+
+```{r}
+
+rmseModelo5test
+## [1] 63229.97
+
+```
+
+
+```{r}
+
+plot(mergeprice,col="blue", main="Predicciones vs valores originales")
+points(predModelo5, col="red")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+
+
+```
+
+
+ Se realizaron diferentes metodos para realizar validación con la finalidad de ver si existen algunas mejoros. Se infiere que no hubo unos cambios encontrados con el RMSE , MSE y además en todas las gráficas se observan el overfitting de los datos.
+
+10.Compare la eficiencia del algoritmo con el resultado obtenido con el árbol de decisión (el de clasificación) y el modelo de random forest que hizo en la hoja pasada. ¿Cuál es mejor para predecir? ¿Cuál se demoró más en procesar?
+
+
+```{r message=FALSE, warning=FALSE}
+
+system.time({
+  modelo5 <- train(SalePrice ~ ., 
+                   data = train, 
+                   method = "rpart", 
+                   trControl = controlcv, 
+                   na.action = na.pass
+  )
+})
+## Warning in nominalTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo,
+## : There were missing values in resampled performance measures.
+##    user  system elapsed 
+##    1.80    0.06    1.91
+
+
+```
+
+
+
+```{r}
+system.time({
+  modeloRF1 <- randomForest(SalePrice ~ ., data = train)
+})
+##    user  system elapsed 
+##    4.64    0.05    4.86
+
+```
+
+
+
+```{r message=FALSE, warning=FALSE}
+
+system.time({
+  modeloNB <- naiveBayes(SalePrice ~ ., data = train)
+})
+##    user  system elapsed 
+##    0.34    0.05    0.43
+
+```
+En terminos de eficiencia, se puede medir con el tiempo y en base a los tres modelos comparados (random forest, Naive Bayes y Random Forest). Observamos que Naive bayes es el más eficiente debido a que el tiempo más corto entre estos modelos. El más costos es el random forest como se puede observar ante los resultados.
