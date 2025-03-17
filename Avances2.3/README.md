@@ -7,7 +7,7 @@ Presentacion final del proyecto
 [Archivos RMD JO](https://github.com/EscasanN/Data_mining_P2/blob/master/Avances2.3/avances2.3.Rmd)
 
 
-[Ejercicios 4-6](https://github.com/EscasanN/Data_mining_P2/tree/master/clasificacion.ipynb)
+[Ejercicios 4-7](https://github.com/EscasanN/Data_mining_P2/tree/master/clasificacion.ipynb)
 
 
 
