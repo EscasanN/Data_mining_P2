@@ -1,0 +1,126 @@
+---
+title: "Avances 2.4"
+author: "Andre Jo 22199"
+date: "2025-03-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cargando paquetes, message=FALSE, warning=FALSE}
+library(GGally)
+library(dplyr)
+library(tidyverse)
+library(class)
+library(ggplot2)
+library(caret)
+```
+
+```{r echo=FALSE}
+datos <-read.csv("test.csv")
+mergeprice <- read.csv("sample_submission.csv")
+train <-read.csv("train.csv")
+
+datos <- merge(datos, mergeprice)
+
+datos[] <- lapply(datos, function(x) {
+  if (is.numeric(x)) {
+
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+  
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+
+train[] <- lapply(train, function(x) {
+  if (is.numeric(x)) {
+
+    x[is.na(x)] <- median(x, na.rm = TRUE)
+  } else if (is.factor(x) | is.character(x)) {
+    
+    mode_value <- names(sort(table(x), decreasing = TRUE))[1]
+    x[is.na(x)] <- mode_value
+  }
+  return(x)
+})
+```
+Debido a que los datos que observamos, tienen datos faltantes, se realiza un la media y el promedio de los datos para rellenar valores faltantes.
+
+```{r  include}
+head(summary(datos))
+
+```
+Separamos las variables a numericas.
+
+1.Elabore un modelo de regresión usando K nearest Neighbors (KNN), el conjunto de
+entrenamiento y la variable respuesta SalesPrice. Prediga con el modelo y explique los
+resultados a los que llega. Asegúrese que los conjuntos de entrenamiento y prueba sean los
+mismos de las entregas anteriores para que los modelos sean comparables
+
+```{r  }
+
+train<-train[complete.cases(train),]
+k_vecinos <- round(sqrt(nrow(datos)),0)
+
+k_vecinos
+```
+En total se observa que k es igual a 38.
+
+```{r   message=FALSE, warning=FALSE}
+parametros <- expand.grid(k = k_vecinos)
+modelo1 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  preProcess= c("center","scale","knnImpute"),
+  tuneGrid = parametros
+)
+predModelo1 <- predict(modelo1, newdata=datos)
+
+
+rmse <- RMSE(predModelo1, datos$SalePrice)
+mse <- rmse^2
+
+```
+MSE
+```{r  }
+mse
+```
+
+RMSE
+```{r  }
+rmse
+```
+Se observa que el RMSE de el modelo de KNN es mejor a comparación de otros modelos como el modelo de Naive Bayes que tiene un RMSE de 70237.08 de acuerdo con la entrega pasada. Ahora con el modelo mejor que fue tuneado, se infiere a base de estos dos numeros (RMSE modelo tuneado 68855.19); se observa que el modelo de KNN es mucho mejor. 
+
+```{r}
+
+# Crear un dataframe con los valores reales y predichos
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = predModelo1
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+Se observa en la gráfica que hay algunos puntos que el modelo no pudo predecir aunque no observamos que los datos esten sobreajustados como en los otros modelos vistos anteriormente. Por otro lado en los modelos anteriores se ve que se relaciona con el modelo de random forest. 
+
+
+
+
