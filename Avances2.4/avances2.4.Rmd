@@ -71,7 +71,6 @@ k_vecinos <- round(sqrt(nrow(datos)),0)
 k_vecinos
 ```
 En total se observa que k es igual a 38.
-
 ```{r   message=FALSE, warning=FALSE}
 parametros <- expand.grid(k = k_vecinos)
 modelo1 <- train(
@@ -123,4 +122,178 @@ Se observa en la gráfica que hay algunos puntos que el modelo no pudo predecir 
 
 
 
+8. Haga un modelo usando validación cruzada, compare los resultados de este con los del
+modelo anterior. ¿Cuál funcionó mejor?
 
+```{r   message=FALSE, warning=FALSE }
+trctrl <- trainControl(method = "repeatedcv",
+                           number = 10,
+                           repeats = 3)
+modelo2 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+predModelo2 <- predict(modelo2, newdata=datos)
+```
+
+```{r   message=FALSE, warning=FALSE }
+ RMSE(predModelo2, datos$SalePrice)
+```
+El RMSE es de 52319.64, es el mismo que el modelo de knn utilizado donde k es igual a la raiz cuadrada del numero de filas (38). 
+
+En el siguiente gráfico se muestran los valores predichos y los reales. 
+```{r}
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = predModelo2
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "City MPG",
+       color = "Serie") +
+  theme_minimal()
+```
+Observamos que no tiene sobreajustes de datos y además observamos que con validación cruzada, tiene casi los mismos datos predichos que en la gráfica del modelo anterior. Ahora con la eficiencia del algoritmo se podría observar si es mejor el modelo con o sin validación cruzada. 
+
+9. Tanto para los modelos de regresión como de clasificación, pruebe con varios valores de los
+hiperparámetros ¿Qué parámetros pueden tunearse en un KNN?, use el mejor modelo del
+tuneo, ¿Mejoraron los resultados usando el mejor modelo ahora? Explique
+
+Se puede realizar el cambio de valor K, necesita tener validación cruzada e incluso preprocesar los datos.
+
+Tuneando varios valores de k
+```{r message=FALSE, warning=FALSE }
+parametros <- expand.grid(k = seq(1,25))
+modelo3 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+predModelo3 <- predict(modelo3, newdata=datos)
+```
+
+El mejor valor de k  
+```{r}
+ggplot(modelo3$results, aes(x = k, y = RMSE)) +
+  geom_line(color = "orange") +  # Línea azul
+  geom_point(size = 3, color = "darkgreen") +  # Puntos rojos
+  labs(title = "Precisión vs Número de Vecinos (k)",
+       x = "Número de Vecinos (k)",
+       y = "RMSE") +
+  theme_minimal()  # Tema limpio
+```
+Se observa que el mejor vecino de acuerdo con la gráfica es 9 u 11.
+
+```{r}
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = predModelo3
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+
+
+```{r}
+rmse <- RMSE(predModelo3, datos$SalePrice)
+rmse
+```
+Se observa que el rmse al realizar diferentes configuraciones como realizar validación cruzada, preprocesamiento de datos e incluso cambiando el valor de k observamos que no es mejor a comparación del modelo 1 (k = 38). El modelo 1 tiene un rmse de 5319.64 que mucho mejor que este modelo (60844.42).
+
+
+
+```{r}
+residuos <- datos$SalePrice - predModelo3
+
+# Crear un dataframe con los valores reales y residuos
+df_resultados <- data.frame(
+  Real = datos$SalePrice,
+  Residuo = residuos
+)
+
+# Graficar valores reales vs residuos
+ggplot(df_resultados, aes(x = Real, y = Residuo)) +
+  geom_point(color = "red", size = 2, alpha = 0.7) +  # Puntos rojos
+  geom_hline(yintercept = 0, linetype = "dashed", color = "blue") +  # Línea en y = 0
+  labs(title = "Valores Reales vs Residuos",
+       x = "Sale Price Reales",
+       y = "Residuo (Error)") +
+  theme_minimal()
+```
+Se observa que la dispersión de los puntos rojos no es uniforme a lo largo del eje X. En la zona de precios de venta más bajos ( 160,000 - 200,000), los residuos tienden a ser más dispersos, mientras que en la zona de precios más altos, la dispersión es menor. Por lo cual se puede inferir que el modelo tiene una varianza de error no constante.
+
+
+10. Compare la eficiencia del algoritmo con el resultado obtenido con el árbol de decisión (el
+de clasificación), el modelo de random forest y el de naive bayes que hizo en las entregas
+pasadas. ¿Cuál es mejor para predecir? ¿Cuál se demoró más en procesar?
+
+Eficiencia del modelo donde se utiliza la raiz cuadrada de filas donde es 38
+```{r message=FALSE, warning=FALSE}
+parametros <- expand.grid(k = k_vecinos)
+system.time({
+  modelo1 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  preProcess= c("center","scale","knnImpute"),
+  tuneGrid = parametros
+)
+})
+```
+Eficiencia del modelo utilizado con validación cruzada
+```{r message=FALSE, warning=FALSE}
+trctrl <- trainControl(method = "repeatedcv",
+                           number = 10,
+                           repeats = 3)
+system.time({
+modelo2 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+})
+```
+Eficiencia del modelo utilizando diferentes hiperpárametros
+```{r message=FALSE, warning=FALSE}
+parametros <- expand.grid(k = seq(1,25))
+system.time({
+modelo3 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+})
+```
+
+
+Se observa que el modelo con más hiperparametros puede tardar más a comparación de los dos modelos que estan cerca en terminos de tiempo de ejecución. Por otro lado observamos que los otros algoritmo como random forest y Naive Bayes observamos que el algoritmo más eficienciente sigue siendo Naive Bayes. Por lo tanto inferimos que el modelo que es mejor para realizar producciones es utilizar el algoritmo de knn donde k es la raiz cuadrada del numero de filas donde tiene el mejor rmse (60844.42). Ahora en terminos de eficiencia seria mejor utilizar el modelo de Naive Bayes. Pero si se necesita un modelo que es adecuado con el tiempo de ejecución y una buena predicción, utilizaria el algoritmo de Random Forest. 
