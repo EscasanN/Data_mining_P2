@@ -1,0 +1,151 @@
+---
+title: "Avacnes2.5"
+author: "Andre Jo 22199"
+date: "2025-04-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(caret)
+library(mlr)
+library(ggplot2)
+library(dummy)
+library(profvis)
+```
+
+
+```{r}
+datos <-read.csv("test.csv")
+
+
+```
+
+
+```{r Prueba, echo=FALSE}
+
+price <- read.csv("sample_submission.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(price$SalePrice)
+min_price <- min(price$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+price$economico <- 0
+price$medio <- 0
+price$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+price$medio <- ifelse(price$SalePrice > bajo & price$SalePrice <= medio, 1, 0)  # Medium (medio)
+price$caro <- ifelse(price$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+price$economico <- ifelse(price$SalePrice <= bajo, 1, price$economico)
+
+
+head(price)
+```
+
+
+```{r TRAIN, echo=FALSE}
+
+train <- read.csv("train.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(train$SalePrice)
+min_price <- min(train$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+train$economico <- 0
+train$medio <- 0
+train$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+train$medio <- ifelse(train$SalePrice > bajo & train$SalePrice <= medio, 1, 0)  # Medium (medio)
+train$caro <- ifelse(train$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+train$economico <- ifelse(train$SalePrice <= bajo, 1, train$economico)
+
+head(train)
+```
+Se observa que utilizamos para la variable objetivo tres categorias, ecnonomico, caro y medio donde primero calculamos el valor de la casa máxima y el mínimo valor de la casa donde luego lo restamos el valor máximo con el mínimo y luego dividirlo entre tres para así diferenciar que casa deberia de pertenecer en esas tres variables. 
+
+
+```{r echo=FALSE}
+datos <- merge(price, datos)
+cols_to_remove <- c("Id" )  # Replace with the actual column names
+
+# Remove the columns by setting them to NULL
+datos <- datos[ , !(colnames(datos) %in% cols_to_remove)]
+
+
+train <- train[ , !(colnames(train) %in% cols_to_remove)]
+
+
+
+
+```
+Solo se elimina la variable ID, Exterior2ndCBlock, GrLivArea, TotalBsmtSF porque no es importante en estos analisis y evitar el analisis de más variables.
+
+
+```{r modelo_todas_cv, warning=FALSE, echo=FALSE}
+
+get_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Convert factor columns to character first if needed
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+# Impute: mean for numeric, mode for character
+datos <- datos %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+# Convertir factores a texto si hace falta
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+
+# Reemplazar NAs
+train <- train %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+```
+
+
+
+```{r echo=FALSE, warning=FALSE}
+cv <- trainControl(method="cv", 
+                          number=10)
+modelo_todas_cv <- caret::train(caro~., data=train,method="glm", family = binomial, trControl = cv)
+
+```
+
+```{r}
+summary(modelo_todas_cv)
+```
+El modelo de regresión logística con validación cruzada mostró que ninguna de las variables es significativa, ya que los valores de z son 0 y los valores de Pr(>|z|) son 1, lo que indica que las variables no están contribuyendo de manera relevante. Esto podría ser causado por la multicolinealidad entre las variables, debido a que muchas de ellas están altamente correlacionadas, lo que afecta la estimación de los coeficientes. Otra posible causa es el exceso de variables en relación con el número de observaciones, lo que podría llevar a un sobreajuste lo cual es más probable con los modelos realizadas con anterioridad. 
+
+
