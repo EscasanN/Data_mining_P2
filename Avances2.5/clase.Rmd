@@ -149,3 +149,62 @@ summary(modelo_todas_cv)
 El modelo de regresión logística con validación cruzada mostró que ninguna de las variables es significativa, ya que los valores de z son 0 y los valores de Pr(>|z|) son 1, lo que indica que las variables no están contribuyendo de manera relevante. Esto podría ser causado por la multicolinealidad entre las variables, debido a que muchas de ellas están altamente correlacionadas, lo que afecta la estimación de los coeficientes. Otra posible causa es el exceso de variables en relación con el número de observaciones, lo que podría llevar a un sobreajuste lo cual es más probable con los modelos realizadas con anterioridad. 
 
 
+
+
+```{r echo=FALSE, warning=FALSE}
+#Creando la variable categorica que contiene las tres categorias, ecnomica, medio y caro
+
+datos_con_categoria <- datos
+
+datos_con_categoria$categoria_precio <- ifelse(datos_con_categoria$economico == 1, "economico",
+                       ifelse(datos_con_categoria$medio == 1, "medio",
+                       ifelse(datos_con_categoria$caro == 1, "caro", NA)))
+
+
+train_1 <- train
+
+train_1$categoria_precio <- ifelse(train_1$economico == 1, "economico",
+                       ifelse(train_1$medio == 1, "medio",
+                       ifelse(train_1$caro == 1, "caro", NA)))
+
+
+cv <- trainControl(method="cv", 
+                          number=10)
+
+start_time <- Sys.time()
+
+# Train model
+modelo_todas_cv <- caret::train(categoria_precio ~ ., data = train_1, method = "multinom", trControl = cv, trace = FALSE)
+
+# End time
+end_time <- Sys.time()
+
+training_time <- end_time - start_time
+
+summary(modelo_todas_cv)
+
+
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+
+
+predicciones <- predict(modelo_todas_cv, newdata = datos_con_categoria)
+datos_con_categoria$categoria_precio <- factor(datos_con_categoria$categoria_precio)
+
+# Matriz de confusión
+confusionMatrix(predicciones, datos_con_categoria$categoria_precio)
+
+```
+Primero que nada, se observa que el modelo pudo predecir como se puede observar un porcentaje de 99.68%. Las predicciones para las clases economico y medio son casi perfectas, mientras que la clase caro muestra una leve disminución en la sensibilidad (80%), pero sigue siendo un buen resultado. La alta precisión y Kappa indican que el modelo está sobreajustado.
+
+
+11. Compare la eficiencia del modelo anterior con los de clasificación de las entregas anteriores ¿Cuál se
+demoró más en procesar?¿Cuál se equivocó más?¿Cuál se equivocó menos?¿por qué?
+
+
+```{r echo=FALSE, warning=FALSE}
+print(paste("Training time:", training_time))
+```
+  De la entrega 2 del proyecto 2 se observa en terminos de tiempo de ejecución que este es el algoritmo más tardado a comparación de los modelos cruzados y no cruzados en las cuales toman un rango de tiempo de 2 a 10 segundos. En cuanto a los modelos que más se equivocaron se observa que el modelo knn tiene un porcentaje de presición de 74.66%. Aunque se ve que hay otros modelos que estan cerca del rango de 90% a 100% como Bayes se observa que este es el mejor modelo. 

@@ -730,6 +730,437 @@ están altamente correlacionadas, lo que afecta la estimación de los
 coeficientes. Otra posible causa es el exceso de variables en relación
 con el número de observaciones, lo que podría llevar a un sobreajuste lo
 cual es más probable con los modelos realizadas con anterioridad.</p>
+<pre><code>## Call:
+## nnet::multinom(formula = .outcome ~ ., data = dat, decay = param$decay, 
+##     trace = FALSE)
+## 
+## Coefficients:
+##           (Intercept)   MSSubClass MSZoningFV MSZoningRH  MSZoningRL MSZoningRM
+## economico -0.01714893  0.001101410  0.1530568  0.2957217 -0.05689274 -0.2604506
+## medio      0.01312096 -0.006694639  0.3162988 -0.4647028  0.82131934  1.1182811
+##           LotFrontage      LotArea StreetPave   AlleyPave LotShapeIR2
+## economico -0.01299268 0.0001491241 -0.5441204  0.20742026  -0.2246062
+## medio     -0.01687481 0.0001036350  1.9050850 -0.02189445  -0.5503255
+##           LotShapeIR3 LotShapeReg LandContourHLS LandContourLow LandContourLvl
+## economico   1.1490900 -0.03284831    -0.28870227      0.5214846      0.3077974
+## medio       0.9912686 -0.39390725    -0.06627513      0.6278728      0.1867241
+##           UtilitiesNoSeWa LotConfigCulDSac LotConfigFR2 LotConfigFR3
+## economico      -0.3790245       -0.4303433  -0.29089932   -0.4764919
+## medio           0.7074540       -0.2424822  -0.09335567    0.1178051
+##           LotConfigInside LandSlopeMod LandSlopeSev NeighborhoodBlueste
+## economico      -0.2662634   -0.1026328    0.4810144           0.1771096
+## medio          -0.3429775    0.1027424   -0.2696511          -0.3309488
+##           NeighborhoodBrDale NeighborhoodBrkSide NeighborhoodClearCr
+## economico         0.09232272           0.4122681           0.8579764
+## medio            -0.05203416           0.2004710           0.3427614
+##           NeighborhoodCollgCr NeighborhoodCrawfor NeighborhoodEdwards
+## economico          -0.6141003           0.8707533          0.07641929
+## medio               0.3972050           0.1707178         -0.09984035
+##           NeighborhoodGilbert NeighborhoodIDOTRR NeighborhoodMeadowV
+## economico         -0.20657514         -0.2520061         -0.34360850
+## medio             -0.04037338         -0.4225894          0.07932858
+##           NeighborhoodMitchel NeighborhoodNAmes NeighborhoodNoRidge
+## economico         -0.01416389         0.0207002          -0.3561949
+## medio             -0.10715137        -0.1621490           0.3524228
+##           NeighborhoodNPkVill NeighborhoodNridgHt NeighborhoodNWAmes
+## economico         -0.03353481        -0.090126027         -0.1220062
+## medio              0.56598072         0.006903909          0.1874474
+##           NeighborhoodOldTown NeighborhoodSawyer NeighborhoodSawyerW
+## economico          0.07742748          0.1042675          -0.3875433
+## medio             -0.27604055          0.7234797          -0.3815222
+##           NeighborhoodSomerst NeighborhoodStoneBr NeighborhoodSWISU
+## economico           0.1984696         -0.88008644        0.30924458
+## medio              -0.2794237          0.03543834       -0.07452418
+##           NeighborhoodTimber NeighborhoodVeenker Condition1Feedr Condition1Norm
+## economico          0.4773896          0.54821107       0.3191159     0.05091740
+## medio              0.4860941          0.05034178      -0.1661514     0.03322942
+##           Condition1PosA Condition1PosN Condition1RRAe Condition1RRAn
+## economico      0.4552429      0.2413831      0.4151138    -0.07765070
+## medio          0.1544174      0.3099631     -0.4416228    -0.05919175
+##           Condition1RRNe Condition1RRNn Condition2Feedr Condition2Norm
+## economico    -0.52754577     -0.3865589        0.601042      0.4077817
+## medio         0.01462837     -0.4298720       -1.350585      0.8336800
+##           Condition2PosA Condition2PosN Condition2RRAe Condition2RRAn
+## economico     -0.4121201    -0.53711508     -0.1980976    -0.20494656
+## medio          0.1712187     0.07148083      0.4430674     0.08656668
+##           Condition2RRNn BldgType2fmCon BldgTypeDuplex BldgTypeTwnhs
+## economico     0.10872284     -0.2213977    -0.01106503    -0.3203615
+## medio        -0.07571559      0.2348846    -0.27582705     0.6400671
+##           BldgTypeTwnhsE HouseStyle1.5Unf HouseStyle1Story HouseStyle2.5Fin
+## economico    -0.12936422        0.3139577      -0.03307198        0.2366385
+## medio        -0.06738761       -0.5213995      -0.38632283        0.4281893
+##           HouseStyle2.5Unf HouseStyle2Story HouseStyleSFoyer HouseStyleSLvl
+## economico       -0.3161256     -0.008236034       0.14599529     -0.3603264
+## medio           -0.3267774      0.356919350      -0.07447617     -0.2552559
+##           OverallQual OverallCond  YearBuilt YearRemodAdd RoofStyleGable
+## economico   0.4098179   0.3226525 0.01518136  0.005503871     -0.4082412
+## medio       0.1220051   0.7728217 0.03064422 -0.016057561     -0.2628288
+##           RoofStyleGambrel RoofStyleHip RoofStyleMansard RoofStyleShed
+## economico      0.053505473   -0.4552475     -0.001746087    -0.2011856
+## medio          0.002144258   -1.0616212      0.600209922     0.4568513
+##           RoofMatlCompShg RoofMatlMembran RoofMatlMetal RoofMatlRoll
+## economico      0.03653475      0.32026835     0.2974809    0.2993835
+## medio          0.43899540     -0.01349971     0.1097386    0.1285226
+##           `RoofMatlTar&amp;Grv` RoofMatlWdShake RoofMatlWdShngl Exterior1stAsphShn
+## economico        -0.2127485     -0.19032503      -0.4767200         -0.3179992
+## medio             0.3525885     -0.07901624      -0.4340175          0.1326490
+##           Exterior1stBrkComm Exterior1stBrkFace Exterior1stCBlock
+## economico        -0.16359160         0.48116447        0.06121009
+## medio             0.07876888        -0.01821254       -0.09771173
+##           Exterior1stCemntBd Exterior1stHdBoard Exterior1stImStucc
+## economico         -1.5019220         -0.1172292          0.1150858
+## medio             -0.7030497         -0.1473618         -0.1137626
+##           Exterior1stMetalSd Exterior1stPlywood Exterior1stStone
+## economico          0.4450422          0.7053514        0.1203959
+## medio             -0.1514494         -0.1794610       -0.3794658
+##           Exterior1stStucco Exterior1stVinylSd `Exterior1stWd Sdng`
+## economico        -0.5637144          0.7217669            0.2131426
+## medio             0.7357022         -0.2902308           -0.1138478
+##           Exterior1stWdShing Exterior2ndAsphShn `Exterior2ndBrk Cmn`
+## economico         0.52076672          0.3276143           0.06730893
+## medio             0.01953439         -0.2802776           0.31734865
+##           Exterior2ndBrkFace Exterior2ndCBlock Exterior2ndCmentBd
+## economico         -0.2195023        0.06121009         0.84910659
+## medio              0.1078082       -0.09771173         0.02124405
+##           Exterior2ndHdBoard Exterior2ndImStucc Exterior2ndMetalSd
+## economico         -0.7065934        -0.07080637         -0.2893852
+## medio             -0.1985426        -0.09238393         -0.1014440
+##           Exterior2ndOther Exterior2ndPlywood Exterior2ndStone
+## economico        0.0537975         -0.1877785       -0.3195776
+## medio           -0.1672481         -0.2087765        0.3462856
+##           Exterior2ndStucco Exterior2ndVinylSd `Exterior2ndWd Sdng`
+## economico         0.7306478        -0.11743038          0.004325423
+## medio            -0.1457104        -0.01608508          0.038003628
+##           `Exterior2ndWd Shng` MasVnrTypeBrkFace MasVnrTypeNone MasVnrTypeStone
+## economico           -0.6456399       -0.01680262     0.33396639     -0.06364656
+## medio               -0.1597615       -0.28403460     0.09018723      0.16693987
+##            MasVnrArea ExterQualFa ExterQualGd ExterQualTA ExterCondFa
+## economico 0.001583670 -0.07678328   0.4148993  -0.3057784   0.2202689
+## medio     0.001607949 -0.87318144  -0.9032618  -1.1099690  -0.1694694
+##           ExterCondGd ExterCondPo ExterCondTA FoundationCBlock FoundationPConc
+## economico  0.36855995  0.04833628   0.1493948        0.1714171       0.4462299
+## medio     -0.03047594  0.14765172  -0.1995359        0.2197555       0.7311633
+##           FoundationSlab FoundationStone FoundationWood BsmtQualFa BsmtQualGd
+## economico     -0.6480286        1.438981      0.6807202 -0.4766127  0.1333541
+## medio         -0.1745766        0.651968     -0.6031166  0.1479070  0.6127214
+##           BsmtQualTA BsmtCondGd BsmtCondPo BsmtCondTA BsmtExposureGd
+## economico  0.1831356  0.4493871  0.3855699 -0.3305763     -0.4371681
+## medio     -0.2544266 -0.4158386 -0.7869508  0.4019760     -0.4823639
+##           BsmtExposureMn BsmtExposureNo BsmtFinType1BLQ BsmtFinType1GLQ
+## economico      0.3316429      0.2872012      0.03156766       0.1725523
+## medio         -0.2854998     -0.3415710      0.12686212       0.4102017
+##           BsmtFinType1LwQ BsmtFinType1Rec BsmtFinType1Unf    BsmtFinSF1
+## economico      0.08289960      -0.1537751      -0.1133463 -0.0003044563
+## medio         -0.06443489      -0.2297761       0.1163508 -0.0004281523
+##           BsmtFinType2BLQ BsmtFinType2GLQ BsmtFinType2LwQ BsmtFinType2Rec
+## economico       0.2830420      0.01488595       0.4146735       0.1552275
+## medio          -0.1152676     -0.04784530       0.2965416       0.5653399
+##           BsmtFinType2Unf    BsmtFinSF2     BsmtUnfSF   TotalBsmtSF HeatingGasA
+## economico       0.2371898 -0.0001721706 -0.0003553337 -0.0008319681  -0.7506293
+## medio           0.5097313  0.0006826186 -0.0004627562 -0.0002082921  -0.3838489
+##           HeatingGasW HeatingGrav HeatingOthW HeatingWall HeatingQCFa
+## economico   0.5109077  -0.2522827  0.06104162  0.11413934  0.06258231
+## medio       0.8908967  -0.2538473 -0.06823086 -0.09284914 -0.05108432
+##           HeatingQCGd HeatingQCPo HeatingQCTA CentralAirY ElectricalFuseF
+## economico   0.1055135  -0.1413208 -0.12858786   0.1073664     -0.04027725
+## medio      -0.1480589   0.1183587 -0.08465793   0.4735902      0.28771567
+##           ElectricalFuseP ElectricalMix ElectricalSBrkr     X1stFlrSF
+## economico      0.09306355     0.2829388       0.4308974  9.467992e-05
+## medio         -0.08511168    -0.3774419       0.6376577 -2.985019e-04
+##               X2ndFlrSF LowQualFinSF   GrLivArea BsmtFullBath BsmtHalfBath
+## economico -0.0009751435  0.003073956 0.002193534    0.5262366   0.04053264
+## medio     -0.0018323491  0.003778733 0.001647851   -0.2288404  -0.05947129
+##            FullBath   HalfBath BedroomAbvGr KitchenAbvGr KitchenQualFa
+## economico 0.1930876 0.03125897    0.8890714    0.1752478     -0.130697
+## medio     0.4375040 0.02837515   -0.8042966    0.2776410     -0.288850
+##           KitchenQualGd KitchenQualTA TotRmsAbvGrd FunctionalMaj2
+## economico    0.23097437     0.2996015   -0.6577827      1.8515709
+## medio        0.08221661    -0.3058388    0.3079607     -0.9223682
+##           FunctionalMin1 FunctionalMin2 FunctionalMod FunctionalSev
+## economico     -0.2850374     0.01360182    -1.3558075     0.3758713
+## medio          0.3242594     0.58516888    -0.2171951    -0.7033537
+##           FunctionalTyp Fireplaces FireplaceQuFa FireplaceQuGd FireplaceQuPo
+## economico    -0.2049661  0.4809739    -0.4609171    -1.0415242    -0.7615189
+## medio         0.6885652  0.5366603    -0.3631750    -0.4783431    -0.2812913
+##           FireplaceQuTA GarageTypeAttchd GarageTypeBasment GarageTypeBuiltIn
+## economico    -0.8728485       0.07246153         0.1371366        0.04449576
+## medio        -0.7370135      -0.39216198         0.7122471        0.14670151
+##           GarageTypeCarPort GarageTypeDetchd   GarageYrBlt GarageFinishRFn
+## economico        -0.1610016      0.006406593  0.0002712129      0.02656806
+## medio            -0.7544620     -0.184441077 -0.0019906569     -0.17405334
+##           GarageFinishUnf  GarageCars    GarageArea GarageQualFa GarageQualGd
+## economico      0.33036404  0.18366247 -0.0003501396  -0.36424658   -0.2193659
+## medio          0.02684333 -0.02114018  0.0001952360   0.06002847    0.2364312
+##           GarageQualPo GarageQualTA GarageCondFa GarageCondGd GarageCondPo
+## economico    1.0945677  -0.67749935   -0.3563443   -0.4375111    0.7355742
+## medio       -0.8563868  -0.03859975    0.5380417    0.1596827   -0.7560980
+##           GarageCondTA PavedDriveP PavedDriveY    WoodDeckSF  OpenPorchSF
+## economico   -0.2895975  -0.7865759  -0.3764457  0.0003986864 -0.001866176
+## medio        0.3487040  -0.5764269  -0.4030238 -0.0013835478 -0.002585929
+##           EnclosedPorch  X3SsnPorch  ScreenPorch    PoolArea    PoolQCFa
+## economico   0.003546126 0.012549937 -0.001965906 0.003059456 -0.02054309
+## medio       0.007759641 0.007561441  0.001412170 0.003931773  0.37359978
+##             PoolQCGd  FenceGdWo  FenceMnPrv   FenceMnWw MiscFeatureOthr
+## economico -0.8259283 -0.3665405 -0.34011755 -0.05119467      0.02097904
+## medio     -0.5891223 -0.2126394  0.05193031 -0.20175737      0.07356371
+##           MiscFeatureShed MiscFeatureTenC       MiscVal        MoSold
+## economico      -0.1090484     -0.04283081  0.0005769711  0.0008385918
+## medio          -0.7836459      0.84486441 -0.0005527146 -0.0244102735
+##                YrSold SaleTypeCon SaleTypeConLD SaleTypeConLI SaleTypeConLw
+## economico -0.01980608   0.4177099     0.5036697     0.2127623   -0.02612279
+## medio     -0.01437454  -0.3320231     0.1212872     0.9382414    0.24388227
+##           SaleTypeCWD SaleTypeNew SaleTypeOth  SaleTypeWD SaleConditionAdjLand
+## economico   0.4006678   0.2053054   0.3017478 -0.09414143           -0.5831784
+## medio       0.3024123   0.1679612  -0.1213645  0.31955287            0.6171371
+##           SaleConditionAlloca SaleConditionFamily SaleConditionNormal
+## economico           0.5008348          0.02074259         -0.03052446
+## medio              -1.3604822          0.32027298          0.34547539
+##           SaleConditionPartial     SalePrice economico     medio       caro
+## economico           -0.1129704 -2.554907e-05 12.480314 -4.934031  -7.563431
+## medio                0.3138578 -2.006937e-05 -1.498526 12.915822 -11.404175
+## 
+## Std. Errors:
+##            (Intercept) MSSubClass   MSZoningFV   MSZoningRH   MSZoningRL
+## economico 8.006962e-06  0.1557881 8.744219e-05 2.949224e-05 0.0005235057
+## medio     7.604434e-06  0.0984562 1.521733e-04 2.856644e-06 0.0004211864
+##             MSZoningRM LotFrontage     LotArea   StreetPave    AlleyPave
+## economico 0.0004922520  0.03414598 0.003347460 4.542891e-05 6.294235e-05
+## medio     0.0003514056  0.02703459 0.003343605 7.592089e-06 1.829386e-05
+##            LotShapeIR2  LotShapeIR3  LotShapeReg LandContourHLS LandContourLow
+## economico 1.056805e-04 1.707236e-05 0.0002734384   0.0001101008   4.635251e-05
+## medio     9.914008e-05 1.661205e-05 0.0003658016   0.0001405420   2.793003e-05
+##           LandContourLvl UtilitiesNoSeWa LotConfigCulDSac LotConfigFR2
+## economico   0.0002503898    0.0002355811     0.0003112939 9.306908e-05
+## medio       0.0001641265    0.0002624652     0.0003122132 1.173668e-04
+##           LotConfigFR3 LotConfigInside LandSlopeMod LandSlopeSev
+## economico 1.239420e-05    0.0002019750 0.0001255374  2.89539e-05
+## medio     1.148346e-05    0.0002224911 0.0001575924  3.88484e-05
+##           NeighborhoodBlueste NeighborhoodBrDale NeighborhoodBrkSide
+## economico        2.455551e-06       1.246459e-04        1.892147e-04
+## medio            1.634291e-06       7.567216e-05        8.284681e-05
+##           NeighborhoodClearCr NeighborhoodCollgCr NeighborhoodCrawfor
+## economico        8.718677e-05        0.0003883228        7.221292e-05
+## medio            7.269436e-05        0.0002967880        1.404745e-04
+##           NeighborhoodEdwards NeighborhoodGilbert NeighborhoodIDOTRR
+## economico        1.020884e-04        0.0001357913       1.919710e-04
+## medio            6.453488e-05        0.0001131858       7.639078e-05
+##           NeighborhoodMeadowV NeighborhoodMitchel NeighborhoodNAmes
+## economico        0.0003197793        5.568615e-05      0.0002894844
+## medio            0.0002294299        3.531849e-05      0.0001526972
+##           NeighborhoodNoRidge NeighborhoodNPkVill NeighborhoodNridgHt
+## economico        8.691373e-05        4.645447e-05        0.0002374752
+## medio            6.047711e-05        2.965833e-05        0.0002489233
+##           NeighborhoodNWAmes NeighborhoodOldTown NeighborhoodSawyer
+## economico       0.0001929931        0.0002923957       1.181406e-04
+## medio           0.0001272635        0.0001917203       6.481616e-05
+##           NeighborhoodSawyerW NeighborhoodSomerst NeighborhoodStoneBr
+## economico        5.080920e-05        0.0001033116          0.00017405
+## medio            4.387882e-05        0.0001726743          0.00018882
+##           NeighborhoodSWISU NeighborhoodTimber NeighborhoodVeenker
+## economico      2.150230e-05       0.0002282526        1.180398e-05
+## medio          1.921472e-05       0.0002365110        1.397384e-05
+##           Condition1Feedr Condition1Norm Condition1PosA Condition1PosN
+## economico    7.873359e-05   0.0001244117   4.426290e-05   2.758248e-05
+## medio        5.622046e-05   0.0001015582   7.150297e-05   4.187672e-05
+##           Condition1RRAe Condition1RRAn Condition1RRNe Condition1RRNn
+## economico   8.794045e-06   9.193757e-05   1.713039e-05   3.932509e-05
+## medio       1.515519e-05   5.546320e-05   1.591023e-05   7.726112e-06
+##           Condition2Feedr Condition2Norm Condition2PosA Condition2PosN
+## economico    9.033212e-06   6.918377e-05   8.870379e-09   2.435800e-05
+## medio        2.530654e-06   6.773125e-05   4.760552e-05   2.200284e-05
+##           Condition2RRAe Condition2RRAn Condition2RRNn BldgType2fmCon
+## economico   2.192364e-07   1.339291e-06   1.009610e-05   2.013319e-04
+## medio       3.441648e-07   8.055687e-07   6.019827e-06   3.256161e-05
+##           BldgTypeDuplex BldgTypeTwnhs BldgTypeTwnhsE HouseStyle1.5Unf
+## economico   1.284857e-04  0.0004748924   0.0006239287     2.178026e-05
+## medio       5.679441e-05  0.0003829690   0.0004158675     1.676275e-05
+##           HouseStyle1Story HouseStyle2.5Fin HouseStyle2.5Unf HouseStyle2Story
+## economico     0.0004815599     4.321862e-05     1.426519e-04     0.0002153103
+## medio         0.0003152952     4.450851e-05     9.610759e-05     0.0001335781
+##           HouseStyleSFoyer HouseStyleSLvl  OverallQual  OverallCond  YearBuilt
+## economico     0.0002532111   0.0002550265 0.0007876906 0.0009062944 0.01682424
+## medio         0.0002008359   0.0002250583 0.0007470030 0.0006247071 0.01280595
+##           YearRemodAdd RoofStyleGable RoofStyleGambrel RoofStyleHip
+## economico  0.013062159   0.0001202384     5.627251e-05 0.0001271590
+## medio      0.008334655   0.0002312783     6.563805e-05 0.0001594939
+##           RoofStyleMansard RoofStyleShed RoofMatlCompShg RoofMatlMembran
+## economico     3.920651e-05  1.501972e-06    5.532289e-05    2.400228e-07
+## medio         5.602619e-05  1.622848e-06    8.081182e-05    2.845022e-07
+##           RoofMatlMetal RoofMatlRoll `RoofMatlTar&amp;Grv` RoofMatlWdShake
+## economico  1.259127e-07 7.915787e-06      1.377532e-05    4.081561e-05
+## medio      1.511586e-07 2.430316e-06      1.142554e-05    5.998133e-05
+##           RoofMatlWdShngl Exterior1stAsphShn Exterior1stBrkComm
+## economico    4.787567e-06       4.557883e-07       3.993340e-06
+## medio        2.371811e-05       1.727826e-07       1.871246e-06
+##           Exterior1stBrkFace Exterior1stCBlock Exterior1stCemntBd
+## economico       6.409669e-05      2.551975e-05       0.0003734905
+## medio           8.981073e-05      2.820260e-05       0.0002954096
+##           Exterior1stHdBoard Exterior1stImStucc Exterior1stMetalSd
+## economico       0.0002849773       6.037610e-06       0.0003132943
+## medio           0.0003455778       6.222043e-06       0.0002011090
+##           Exterior1stPlywood Exterior1stStone Exterior1stStucco
+## economico       7.472799e-05     4.665611e-05      6.002219e-05
+## medio           6.455129e-05     5.022823e-05      7.041421e-05
+##           Exterior1stVinylSd `Exterior1stWd Sdng` Exterior1stWdShing
+## economico       0.0002587044         0.0002775036       7.058473e-05
+## medio           0.0003130797         0.0001228940       7.230134e-05
+##           Exterior2ndAsphShn `Exterior2ndBrk Cmn` Exterior2ndBrkFace
+## economico       1.387971e-06         2.479224e-05       3.718113e-05
+## medio           1.346984e-06         2.624154e-05       2.808158e-05
+##           Exterior2ndCBlock Exterior2ndCmentBd Exterior2ndHdBoard
+## economico      2.551975e-05       0.0003730714       0.0002769573
+## medio          2.820260e-05       0.0002850796       0.0003147095
+##           Exterior2ndImStucc Exterior2ndMetalSd Exterior2ndOther
+## economico       1.637478e-05       0.0003236526     2.865251e-09
+## medio           1.604781e-05       0.0002029960     6.542195e-06
+##           Exterior2ndPlywood Exterior2ndStone Exterior2ndStucco
+## economico       0.0001980831     4.858887e-05      5.343224e-05
+## medio           0.0000877670     6.306255e-05      6.032283e-05
+##           Exterior2ndVinylSd `Exterior2ndWd Sdng` `Exterior2ndWd Shng`
+## economico       0.0002541827         2.331461e-04         0.0001438151
+## medio           0.0003179308         8.282782e-05         0.0001137529
+##           MasVnrTypeBrkFace MasVnrTypeNone MasVnrTypeStone MasVnrArea
+## economico      0.0003416164   0.0003874761    8.237495e-05 0.09301635
+## medio          0.0002361880   0.0003194825    1.433766e-04 0.11610110
+##            ExterQualFa  ExterQualGd  ExterQualTA  ExterCondFa  ExterCondGd
+## economico 9.284458e-05 0.0002583483 0.0003143904 8.480013e-05 1.124003e-04
+## medio     3.317203e-05 0.0003969662 0.0002707649 1.119424e-05 9.261471e-05
+##            ExterCondPo  ExterCondTA FoundationCBlock FoundationPConc
+## economico 4.066483e-05 1.319110e-04     0.0002392530    0.0002545884
+## medio     4.559186e-07 7.243108e-05     0.0002452191    0.0002754405
+##           FoundationSlab FoundationStone FoundationWood   BsmtQualFa
+## economico   5.840562e-05    2.706162e-05   3.149216e-06 8.448173e-05
+## medio       3.728269e-05    4.025096e-06   9.895527e-07 1.467340e-04
+##             BsmtQualGd   BsmtQualTA   BsmtCondGd   BsmtCondPo   BsmtCondTA
+## economico 0.0004134461 0.0004058647 2.711733e-05 2.640644e-05 0.0000718554
+## medio     0.0004588052 0.0003120336 1.318607e-04 5.689519e-08 0.0001297373
+##           BsmtExposureGd BsmtExposureMn BsmtExposureNo BsmtFinType1BLQ
+## economico   0.0002380998   0.0001190622   0.0004469458    9.097208e-05
+## medio       0.0001378178   0.0001839419   0.0002793317    7.714111e-05
+##           BsmtFinType1GLQ BsmtFinType1LwQ BsmtFinType1Rec BsmtFinType1Unf
+## economico    0.0003384430    0.0001584538    0.0002036833    0.0001588483
+## medio        0.0003383033    0.0001117593    0.0001416001    0.0001201403
+##           BsmtFinSF1 BsmtFinType2BLQ BsmtFinType2GLQ BsmtFinType2LwQ
+## economico 0.03417969    1.140216e-04    5.357128e-05    8.769492e-05
+## medio     0.04368389    7.548475e-05    7.575708e-05    7.644901e-05
+##           BsmtFinType2Rec BsmtFinType2Unf BsmtFinSF2  BsmtUnfSF TotalBsmtSF
+## economico    0.0002638790    0.0002267775 0.05515344 0.02958684  0.05229199
+## medio        0.0003629019    0.0002364323 0.07152798 0.03903486  0.07320409
+##            HeatingGasA  HeatingGasW  HeatingGrav  HeatingOthW  HeatingWall
+## economico 4.977862e-05 4.181255e-05 1.297872e-05 6.809691e-06 2.362325e-05
+## medio     3.045633e-05 1.709898e-05 1.839082e-06 7.956691e-06 1.024473e-05
+##            HeatingQCFa  HeatingQCGd  HeatingQCPo  HeatingQCTA  CentralAirY
+## economico 9.998353e-05 0.0002683178 1.132878e-05 0.0003166748 0.0002945485
+## medio     3.521856e-05 0.0001672985 8.816188e-06 0.0003830492 0.0000846418
+##           ElectricalFuseF ElectricalFuseP ElectricalMix ElectricalSBrkr
+## economico    1.055291e-04    9.675324e-06  4.302592e-08    0.0003616570
+## medio        5.824351e-05    9.796053e-06  1.933887e-11    0.0001823056
+##            X1stFlrSF  X2ndFlrSF LowQualFinSF  GrLivArea BsmtFullBath
+## economico 0.05732055 0.04601704   0.09629693 0.04403392 0.0002780259
+## medio     0.07715615 0.04983829   0.08793452 0.04828416 0.0002176794
+##           BsmtHalfBath     FullBath     HalfBath BedroomAbvGr KitchenAbvGr
+## economico 0.0001917648 0.0002489269 0.0002537577 0.0008718895 2.142726e-04
+## medio     0.0001916004 0.0001308022 0.0002864086 0.0007487350 9.736856e-05
+##           KitchenQualFa KitchenQualGd KitchenQualTA TotRmsAbvGrd FunctionalMaj2
+## economico  1.011879e-04  0.0003661255  0.0004653296 0.0011797964   2.837907e-07
+## medio      5.142075e-05  0.0003053397  0.0003526669 0.0008085687   4.273614e-08
+##           FunctionalMin1 FunctionalMin2 FunctionalMod FunctionalSev
+## economico   5.742257e-05   5.098698e-05  6.623612e-05  1.488455e-07
+## medio       5.146807e-05   2.299805e-05  1.076459e-04  2.491323e-07
+##           FunctionalTyp   Fireplaces FireplaceQuFa FireplaceQuGd FireplaceQuPo
+## economico  0.0001234834 0.0005149597  1.950680e-05  0.0002912886  3.682474e-05
+## medio      0.0001404665 0.0002073631  1.175888e-05  0.0002146868  1.526448e-05
+##           FireplaceQuTA GarageTypeAttchd GarageTypeBasment GarageTypeBuiltIn
+## economico  0.0002793807     0.0003430456      0.0001780008       1.08285e-04
+## medio      0.0001758973     0.0002762439      0.0002294329       9.96254e-05
+##           GarageTypeCarPort GarageTypeDetchd GarageYrBlt GarageFinishRFn
+## economico       9.24599e-05      0.000325671  0.01139246    0.0002645142
+## medio           1.58306e-05      0.000317826  0.01137765    0.0002272131
+##           GarageFinishUnf   GarageCars GarageArea GarageQualFa GarageQualGd
+## economico    0.0001957925 0.0002702174 0.07561051 1.004408e-04 5.317039e-05
+## medio        0.0002902356 0.0003751510 0.11276245 6.228461e-05 5.049581e-05
+##           GarageQualPo GarageQualTA GarageCondFa GarageCondGd GarageCondPo
+## economico 7.286251e-07 1.435991e-04 1.071077e-04 5.507786e-05 6.378271e-05
+## medio     9.161089e-08 5.131837e-05 4.905453e-05 1.344296e-05 5.893577e-06
+##           GarageCondTA  PavedDriveP  PavedDriveY WoodDeckSF OpenPorchSF
+## economico 1.797251e-04 4.588999e-05 1.447329e-04  0.1218680   0.1917451
+## medio     4.789179e-05 3.132719e-05 6.906853e-05  0.1696755   0.2796749
+##           EnclosedPorch  X3SsnPorch ScreenPorch   PoolArea     PoolQCFa
+## economico     0.1459642 0.002136383   0.2328127 0.03136260 5.349700e-05
+## medio         0.1181985 0.002333017   0.2788786 0.03109531 5.470326e-05
+##               PoolQCGd    FenceGdWo   FenceMnPrv    FenceMnWw MiscFeatureOthr
+## economico 5.431176e-05 5.774394e-05 1.116181e-04 2.051841e-05    3.792663e-05
+## medio     5.604732e-05 2.522631e-05 3.853601e-05 8.890498e-06    4.841111e-06
+##           MiscFeatureShed MiscFeatureTenC    MiscVal       MoSold     YrSold
+## economico    4.054199e-05    5.310364e-05 0.09422977 0.0017109937 0.01603303
+## medio        5.562294e-05    5.439328e-05 0.13373654 0.0009669727 0.01532265
+##            SaleTypeCon SaleTypeConLD SaleTypeConLI SaleTypeConLw  SaleTypeCWD
+## economico 8.516569e-07  5.422627e-05  4.483628e-06  1.280649e-05 4.034112e-05
+## medio     8.020523e-07  4.351956e-06  7.011543e-06  1.269163e-05 1.370041e-05
+##            SaleTypeNew  SaleTypeOth   SaleTypeWD SaleConditionAdjLand
+## economico 8.129496e-05 3.272053e-06 0.0003539961         2.217397e-05
+## medio     1.832100e-04 6.004988e-07 0.0002896359         1.051574e-05
+##           SaleConditionAlloca SaleConditionFamily SaleConditionNormal
+## economico        2.561715e-05        4.786098e-05        0.0002803497
+## medio            1.884204e-05        1.498812e-05        0.0002716672
+##           SaleConditionPartial    SalePrice    economico        medio
+## economico         8.667338e-05 0.0003557239 3.817706e-05 0.0000414717
+## medio             1.831999e-04 0.0004087076 1.180959e-04 0.0002148406
+##                   caro
+## economico 4.667592e-05
+## medio     1.167636e-04
+## 
+## Residual Deviance: 0.1498268 
+## AIC: 984.1498</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##            Reference
+## Prediction  caro economico medio
+##   caro         8         0     0
+##   economico    2      1010     0
+##   medio        0         0   439
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9986          
+##                  95% CI : (0.9951, 0.9998)
+##     No Information Rate : 0.6923          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9968          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: caro Class: economico Class: medio
+## Sensitivity             0.800000           1.0000       1.0000
+## Specificity             1.000000           0.9955       1.0000
+## Pos Pred Value          1.000000           0.9980       1.0000
+## Neg Pred Value          0.998622           1.0000       1.0000
+## Prevalence              0.006854           0.6923       0.3009
+## Detection Rate          0.005483           0.6923       0.3009
+## Detection Prevalence    0.005483           0.6936       0.3009
+## Balanced Accuracy       0.900000           0.9978       1.0000</code></pre>
+<p>Primero que nada, se observa que el modelo pudo predecir como se
+puede observar un porcentaje de 99.68%. Las predicciones para las clases
+economico y medio son casi perfectas, mientras que la clase caro muestra
+una leve disminución en la sensibilidad (80%), pero sigue siendo un buen
+resultado. La alta precisión y Kappa indican que el modelo está
+sobreajustado.</p>
+<ol start="11" style="list-style-type: decimal">
+<li>Compare la eficiencia del modelo anterior con los de clasificación
+de las entregas anteriores ¿Cuál se demoró más en procesar?¿Cuál se
+equivocó más?¿Cuál se equivocó menos?¿por qué?</li>
+</ol>
+<pre><code>## [1] &quot;Training time: 44.9276211261749&quot;</code></pre>
+<p>De la entrega 2 del proyecto 2 se observa en terminos de tiempo de
+ejecución que este es el algoritmo más tardado a comparación de los
+modelos cruzados y no cruzados en las cuales toman un rango de tiempo de
+2 a 10 segundos. En cuanto a los modelos que más se equivocaron se
+observa que el modelo knn tiene un porcentaje de presición de 74.66%.
+Aunque se ve que hay otros modelos que estan cerca del rango de 90% a
+100% como Bayes se observa que este es el mejor modelo.</p>
 
 
 
