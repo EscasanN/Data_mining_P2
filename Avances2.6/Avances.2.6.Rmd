@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
 ```
 
 
@@ -118,7 +119,7 @@ datos <- merge(datos, price)
   ylab("Lot Area")
   
 ```
-Se observa que las casas que tienen una condición normal son las más caras. comparación de otras casas que tienen diferentes condiciones, tienden a ser ecnomoicas o de bajo costo. Aunque tambien observamos que La condición Familiy tiende a ser un precio medio.
+Se observa que las casas que tienen una condición de venta "Normal" son las más caras. En comparación, otras casas con diferentes condiciones tienden a ser económicas o de bajo costo. Aunque también se observa que la condición "Family" tiende a presentar un precio medio.
 
 
 
@@ -132,7 +133,7 @@ datos <- merge(datos, price)
   ylab("Lot Area")
   
 ```
-
+Se observa que las casas con escritura "WD" presentan un mayor rango de precios, concentrándose en viviendas caras y con áreas superiores a los 30,000 m². Sin embargo, también se identifican varios puntos atípicos en este grupo. Por otro lado, las propiedades con escritura tipo "COD" (escritura emitida por un funcionario judicial) tienden a ubicarse en un rango de entre 0 y 20,000 m², con precios mayormente medios y algunos económicos. Finalmente, las viviendas con tipo de venta "ConLI" (contrato con interés bajo) se asocian exclusivamente a casas económicas, sin presencia en los rangos de precio medio o alto.
 ```{r, echo=FALSE}
 
 datos <- merge(datos, price)
@@ -143,4 +144,5 @@ datos <- merge(datos, price)
   ylab("Nivel del Suelo")
   
 ```
+Se observa en este diagrama de caja y bigotes que la mayoría de las casas clasificadas como "caras" forman parte del tipo de venta "WD", que corresponde a la transferencia mediante escritura. Por otro lado, las categorías "caro" y "medio" se encuentran en un rango similar, aunque "caro" presenta un rango más amplio. También se puede notar que dentro del criterio "WD" existen casos tanto económicos como de precio medio. Por otro lado, las casas vendidas bajo condiciones de menor interés (como "ConLI") presentan un mayor volumen de viviendas económicas, lo cual resulta coherente con el tipo de financiación ofrecido.
 
