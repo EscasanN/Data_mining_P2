@@ -1,0 +1,146 @@
+---
+title: "Avances2.6"
+author: "Andre Jo 22199"
+date: "2025-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+datos <-read.csv("test.csv")
+
+
+```
+
+
+```{r Prueba, echo=FALSE}
+
+price <- read.csv("sample_submission.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(price$SalePrice)
+min_price <- min(price$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+price$economico <- 0
+price$medio <- 0
+price$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+price$medio <- ifelse(price$SalePrice > bajo & price$SalePrice <= medio, 1, 0)  # Medium (medio)
+price$caro <- ifelse(price$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+price$economico <- ifelse(price$SalePrice <= bajo, 1, price$economico)
+
+
+head(price)
+```
+
+
+```{r TRAIN, echo=FALSE}
+
+train <- read.csv("train.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(train$SalePrice)
+min_price <- min(train$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+train$economico <- 0
+train$medio <- 0
+train$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+train$medio <- ifelse(train$SalePrice > bajo & train$SalePrice <= medio, 1, 0)  # Medium (medio)
+train$caro <- ifelse(train$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+train$economico <- ifelse(train$SalePrice <= bajo, 1, train$economico)
+
+
+
+price$category <- apply(price, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+head(train)
+```
+
+
+
+```{r, echo=FALSE}
+
+summary(datos)
+
+summary(price)
+
+
+```
+Se observa que utilizamos para la variable objetivo tres categorias, ecnonomico, caro y medio donde primero calculamos el valor de la casa máxima y el mínimo valor de la casa donde luego lo restamos el valor máximo con el mínimo y luego dividirlo entre tres para así diferenciar que casa deberia de pertenecer en esas tres variables. 
+
+
+
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleCondition, y=LotArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Condición de las casas")+
+  ylab("Lot Area")
+  
+```
+Se observa que las casas que tienen una condición normal son las más caras. comparación de otras casas que tienen diferentes condiciones, tienden a ser ecnomoicas o de bajo costo. Aunque tambien observamos que La condición Familiy tiende a ser un precio medio.
+
+
+
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleType, y=LotArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Tipo de Venta")+
+  ylab("Lot Area")
+  
+```
+
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleType, y=GrLivArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Tipo de Venta")+
+  ylab("Nivel del Suelo")
+  
+```
+
