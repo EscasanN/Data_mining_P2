@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Andre Jo 22199" />
+<meta name="author" content="Andre Jo 22199, Nelson Escalante 22046" />
 
 <meta name="date" content="2025-04-11" />
 
@@ -351,7 +351,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Avacnes2.5</h1>
-<h4 class="author">Andre Jo 22199</h4>
+<h4 class="author">Andre Jo 22199, Nelson Escalante 22046</h4>
 <h4 class="date">2025-04-11</h4>
 
 </div>
@@ -730,6 +730,11 @@ están altamente correlacionadas, lo que afecta la estimación de los
 coeficientes. Otra posible causa es el exceso de variables en relación
 con el número de observaciones, lo que podría llevar a un sobreajuste lo
 cual es más probable con los modelos realizadas con anterioridad.</p>
+<p>Los valores de p de 1 son un gran indicativo de la falta de
+significancia en las variables sobre el modelo. Esto es debido a la gran
+multicolinealidad que se presenta en el conjunto de datos, ademas de que
+ninguna variable resulta significativa para la prediccion de las casas
+“caras”.</p>
 <pre><code>## Call:
 ## nnet::multinom(formula = .outcome ~ ., data = dat, decay = param$decay, 
 ##     trace = FALSE)
@@ -1153,7 +1158,7 @@ sobreajustado.</p>
 de las entregas anteriores ¿Cuál se demoró más en procesar?¿Cuál se
 equivocó más?¿Cuál se equivocó menos?¿por qué?</li>
 </ol>
-<pre><code>## [1] &quot;Training time: 44.9276211261749&quot;</code></pre>
+<pre><code>## [1] &quot;Training time: 21.2543988227844&quot;</code></pre>
 <p>De la entrega 2 del proyecto 2 se observa en terminos de tiempo de
 ejecución que este es el algoritmo más tardado a comparación de los
 modelos cruzados y no cruzados en las cuales toman un rango de tiempo de

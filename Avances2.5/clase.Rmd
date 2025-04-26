@@ -2,7 +2,9 @@
 title: "Avacnes2.5"
 author: "Andre Jo 22199, Nelson Escalante 22046"
 date: "2025-04-11"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -149,20 +151,6 @@ El modelo de regresión logística con validación cruzada mostró que ninguna d
 Los valores de p de 1 son un gran indicativo de la falta de significancia en las variables sobre el modelo. Esto es debido a la gran multicolinealidad que se presenta en el conjunto de datos, ademas de que ninguna variable resulta significativa para la prediccion de las casas "caras".
 
 ```{r}
-set.seed(123) # Para reproducibilidad
-indices_entrenamiento <- createDataPartition(train$caro, p = 0.7, list = FALSE)
-datos_entrenamiento <- train[indices_entrenamiento, ]
-datos_prueba <- train[-indices_entrenamiento, ]
-
-# Preparamos los datos para glmnet (necesita una matriz para X y un vector para y)
-# Primero, removemos las variables de respuesta (economico, medio, caro) y cualquier otra variable que no sea predictor
-predictores <- datos_entrenamiento %>% 
-  select(-economico, -medio, -caro, -SalePrice)
-
-# Convertimos las variables categóricas a variables dummy
-predictores_procesados <- model.matrix(~., data = predictores)[,-1] # Removemos la intercepción
-respuesta <- datos_entrenamiento$caro
-
 ```
 
 

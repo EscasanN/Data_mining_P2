@@ -1,6 +1,6 @@
 ---
 title: "Avances2.6"
-author: "Andre Jo 22199"
+author: "Andre Jo 22199, Nelson Escalante 22046"
 date: "2025-04-25"
 output: html_document
 ---
@@ -146,3 +146,224 @@ datos <- merge(datos, price)
 ```
 Se observa en este diagrama de caja y bigotes que la mayoría de las casas clasificadas como "caras" forman parte del tipo de venta "WD", que corresponde a la transferencia mediante escritura. Por otro lado, las categorías "caro" y "medio" se encuentran en un rango similar, aunque "caro" presenta un rango más amplio. También se puede notar que dentro del criterio "WD" existen casos tanto económicos como de precio medio. Por otro lado, las casas vendidas bajo condiciones de menor interés (como "ConLI") presentan un mayor volumen de viviendas económicas, lo cual resulta coherente con el tipo de financiación ofrecido.
 
+```{r}
+library(e1071)  # Para SVM
+library(caret)  # Para evaluación de modelos y tuning
+library(dplyr)  # Para manipulación de datos
+library(ggplot2)  # Para visualización
+
+train$category <- ifelse(train$caro == 1, "caro", 
+                        ifelse(train$medio == 1, "medio", "economico"))
+train$category <- as.factor(train$category)
+
+predictores <- c("LotArea", "OverallQual", "OverallCond", "YearBuilt", 
+                 "YearRemodAdd", "TotalBsmtSF", "GrLivArea", "BedroomAbvGr", 
+                 "KitchenAbvGr", "TotRmsAbvGrd", "GarageCars", "GarageArea")
+
+predictores <- predictores[predictores %in% colnames(train)]
+
+train_data <- train[complete.cases(train[, predictores]), c(predictores, "category")]
+
+set.seed(123)  # Para reproducibilidad
+indices <- createDataPartition(train_data$category, p = 0.7, list = FALSE)
+datos_train <- train_data[indices, ]
+datos_validate <- train_data[-indices, ]
+```
+
+```{r}
+evaluate_model <- function(model, train_data, test_data, name) {
+  # Predicciones en datos de entrenamiento
+  pred_train <- predict(model, train_data[, predictores])
+  conf_train <- confusionMatrix(pred_train, train_data$category)
+  acc_train <- conf_train$overall["Accuracy"]
+  
+  # Predicciones en datos de prueba
+  pred_test <- predict(model, test_data[, predictores])
+  conf_test <- confusionMatrix(pred_test, test_data$category)
+  acc_test <- conf_test$overall["Accuracy"]
+  
+  # Mostrar resultados
+  cat("\n===== Resultados para", name, "=====\n")
+  cat("Precisión en train:", round(acc_train * 100, 2), "%\n")
+  cat("Precisión en test:", round(acc_test * 100, 2), "%\n")
+  cat("Diferencia (train-test):", round((acc_train - acc_test) * 100, 2), "% puntos\n")
+  
+  cat("\nMatriz de confusión (datos de prueba):\n")
+  print(conf_test$table)
+  
+  # Evaluación de ajuste
+  if((acc_train - acc_test) > 0.1) {
+    cat("\nDiagnóstico: Posible sobreajuste (overfitting)\n")
+    cat("El modelo tiene un rendimiento significativamente mejor en los datos de entrenamiento.\n")
+  } else if(acc_train < 0.6 && acc_test < 0.6) {
+    cat("\nDiagnóstico: Posible subajuste (underfitting)\n")
+    cat("El modelo tiene un rendimiento bajo tanto en entrenamiento como en prueba.\n")
+  } else {
+    cat("\nDiagnóstico: El modelo parece estar bien ajustado\n")
+  }
+  
+  return(list(
+    model = model,
+    accuracy_train = acc_train,
+    accuracy_test = acc_test,
+    conf_matrix = conf_test,
+    diff = acc_train - acc_test
+  ))
+}
+```
+
+```{r}
+# ----- MODELO 1: SVM LINEAL -----
+cat("\n\n========== MODELO 1: SVM LINEAL ==========\n")
+modelo_lineal <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "linear",
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_lineal <- evaluate_model(
+  modelo_lineal, 
+  datos_train, 
+  datos_validate, 
+  "SVM Lineal (C=1)"
+)
+```
+
+```{r}
+# ----- MODELO 2: SVM POLINOMIAL -----
+cat("\n\n========== MODELO 2: SVM POLINOMIAL ==========\n")
+modelo_poly <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "polynomial",
+  degree = 2,
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_poly <- evaluate_model(
+  modelo_poly, 
+  datos_train, 
+  datos_validate, 
+  "SVM Polinomial (grado=2, C=1)"
+)
+```
+
+```{r}
+# ----- MODELO 3: SVM RADIAL (RBF) -----
+cat("\n\n========== MODELO 3: SVM RADIAL ==========\n")
+modelo_radial <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "radial",
+  gamma = 0.1,
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_radial <- evaluate_model(
+  modelo_radial, 
+  datos_train, 
+  datos_validate, 
+  "SVM Radial (gamma=0.1, C=1)"
+)
+```
+
+```{r}
+# ----- MODELO 4: SVM RADIAL (RBF) CON MAYOR REGULARIZACIÓN -----
+cat("\n\n========== MODELO 4: SVM RADIAL CON MAYOR REGULARIZACIÓN ==========\n")
+modelo_radial_reg <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "radial",
+  gamma = 0.01,  # Gamma más bajo = menos complejidad
+  cost = 0.5,    # C más bajo = más regularización
+  scale = TRUE
+)
+
+resultado_radial_reg <- evaluate_model(
+  modelo_radial_reg, 
+  datos_train, 
+  datos_validate, 
+  "SVM Radial Regularizado (gamma=0.01, C=0.5)"
+)
+```
+
+```{r}
+# Compilar resultados para comparación
+comparacion <- data.frame(
+  Modelo = c("SVM Lineal", "SVM Polinomial", "SVM Radial", "SVM Radial Regularizado"),
+  Precisión_Train = c(
+    resultado_lineal$accuracy_train,
+    resultado_poly$accuracy_train,
+    resultado_radial$accuracy_train,
+    resultado_radial_reg$accuracy_train
+  ),
+  Precisión_Test = c(
+    resultado_lineal$accuracy_test,
+    resultado_poly$accuracy_test,
+    resultado_radial$accuracy_test,
+    resultado_radial_reg$accuracy_test
+  ),
+  Diferencia = c(
+    resultado_lineal$diff,
+    resultado_poly$diff,
+    resultado_radial$diff,
+    resultado_radial_reg$diff
+  )
+)
+
+# Mostrar tabla de comparación
+print(comparacion)
+```
+
+```{r}
+# Visualizar resultados
+comparacion_long <- tidyr::pivot_longer(
+  comparacion, 
+  cols = c("Precisión_Train", "Precisión_Test"),
+  names_to = "Conjunto",
+  values_to = "Precisión"
+)
+
+ggplot(comparacion_long, aes(x = Modelo, y = Precisión, fill = Conjunto)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = round(Precisión, 3)), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 3) +
+  labs(title = "Comparación de Precisión entre Modelos SVM",
+       x = "Modelo", 
+       y = "Precisión") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Visualizar la diferencia entre train y test (indicador de sobreajuste)
+ggplot(comparacion, aes(x = Modelo, y = Diferencia)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes(label = round(Diferencia, 3)), vjust = -0.5) +
+  labs(title = "Diferencia entre Precisión de Train y Test",
+       subtitle = "Valores más altos indican mayor riesgo de sobreajuste",
+       x = "Modelo", 
+       y = "Diferencia (Train - Test)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Determinar el mejor modelo
+mejores_modelos <- comparacion %>%
+  arrange(desc(Precisión_Test))
+
+mejor_modelo_nombre <- mejores_modelos$Modelo[1]
+cat("El mejor modelo según precisión en validación es:", mejor_modelo_nombre, "\n")
+```
+Todos los modelos parecen tener una precision demasiado alta, lo que podria ser indicador de sobreajuste, pero el modelo con la mayor diferencia de precision (y la precision mas alta) parece ser el SVM Radial. Para manejar posibles sobreajustes se podria:
+
+- Reducir la complejidad del modelo (con menor gamma o grado polinomial)
+- Aumentar la regularizacion
+- Reducir el numero de variables predictoras
+- Usar validacion cruzada
