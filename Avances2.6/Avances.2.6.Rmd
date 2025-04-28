@@ -2,7 +2,9 @@
 title: "Máquinas Vectoriales de Soporte (SVM)"
 author: "Andre Jo 22199, Nelson Escalante 22046"
 date: "2025-04-25"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -301,6 +303,7 @@ resultado_radial_reg <- evaluate_model(
   "SVM Radial Regularizado (gamma=0.01, C=0.5)"
 )
 ```
+En todos los modelos, las equivocaciones parecen ser entre las casas economicas y las de precio medio. Todos estas equivocaciones son leves, ya que los precios que comprenden estas categorias son bastante cercanos, por lo cual equivocaciones en estos campos. Para las casas caras, los modelos parecen tener equivocaciones entre las casas caras y medias. El unico modelo que fue capaz de identificar correctamente las casas caras fue el SMV linear con c = 1.
 
 ```{r,  echo=FALSE}
 # Compilar resultados para comparación
@@ -378,7 +381,6 @@ Todos los modelos parecen tener una precision demasiado alta, lo que podria ser 
 - Aumentar la regularizacion
 - Reducir el numero de variables predictoras
 - Usar validacion cruzada
-
 
 Al observar la eficiencia de diferentes modelos podemos notar que hay algunos más eficientes que el modelo SVM pero, el modelo SVM se puede realizar un tuneo con la finalidad de observar si es más eficientes o mejor que otros modelos. A continuación se realizará el tuneo de SVM lineal y realizar la comparación ante modelos como KNN, naive Byaes con el criterio del menor RMSE. 
 ```{r,  echo=FALSE}

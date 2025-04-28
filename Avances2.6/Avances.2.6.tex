@@ -1,0 +1,827 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Máquinas Vectoriales de Soporte (SVM)},
+  pdfauthor={Andre Jo 22199, Nelson Escalante 22046},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Máquinas Vectoriales de Soporte (SVM)}
+\author{Andre Jo 22199, Nelson Escalante 22046}
+\date{2025-04-25}
+
+\begin{document}
+\maketitle
+
+\subsection{Introducción}\label{introducciuxf3n}
+
+En el presente trabajo, se tiene como objetivo construir y evaluar
+modelos predictivos utilizando el algoritmo de Máquinas de Vectores de
+Soporte (SVM) para clasificar propiedades inmobiliarias según su precio
+en tres categorías: barata, media y cara. Para ello, se emplearán los
+mismos conjuntos de datos de entrenamiento y prueba utilizados en
+trabajos previos, asegurando la consistencia en las evaluaciones.
+
+En primer lugar, se realizará un análisis exploratorio de los datos para
+identificar las transformaciones necesarias y garantizar que las
+características sean adecuadas para el entrenamiento del modelo SVM. Se
+utilizará como variable de respuesta una categorización del precio de
+las casas, lo que permitirá desarrollar un modelo de clasificación.
+
+A continuación, se llevará a cabo una exploración general de los datos,
+utilizando herramientas como las cajas de bigote para visualizar la
+distribución de las variables y detectar posibles valores atípicos.
+
+\begin{verbatim}
+##     Id SalePrice economico medio caro
+## 1 1461  169277.1         1     0    0
+## 2 1462  187758.4         0     1    0
+## 3 1463  183583.7         1     0    0
+## 4 1464  179317.5         1     0    0
+## 5 1465  150730.1         1     0    0
+## 6 1466  177151.0         1     0    0
+\end{verbatim}
+
+\begin{verbatim}
+##   Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape LandContour
+## 1  1         60       RL          65    8450   Pave  <NA>      Reg         Lvl
+## 2  2         20       RL          80    9600   Pave  <NA>      Reg         Lvl
+## 3  3         60       RL          68   11250   Pave  <NA>      IR1         Lvl
+## 4  4         70       RL          60    9550   Pave  <NA>      IR1         Lvl
+## 5  5         60       RL          84   14260   Pave  <NA>      IR1         Lvl
+## 6  6         50       RL          85   14115   Pave  <NA>      IR1         Lvl
+##   Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType
+## 1    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam
+## 2    AllPub       FR2       Gtl      Veenker      Feedr       Norm     1Fam
+## 3    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam
+## 4    AllPub    Corner       Gtl      Crawfor       Norm       Norm     1Fam
+## 5    AllPub       FR2       Gtl      NoRidge       Norm       Norm     1Fam
+## 6    AllPub    Inside       Gtl      Mitchel       Norm       Norm     1Fam
+##   HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle RoofMatl
+## 1     2Story           7           5      2003         2003     Gable  CompShg
+## 2     1Story           6           8      1976         1976     Gable  CompShg
+## 3     2Story           7           5      2001         2002     Gable  CompShg
+## 4     2Story           7           5      1915         1970     Gable  CompShg
+## 5     2Story           8           5      2000         2000     Gable  CompShg
+## 6     1.5Fin           5           5      1993         1995     Gable  CompShg
+##   Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond Foundation
+## 1     VinylSd     VinylSd    BrkFace        196        Gd        TA      PConc
+## 2     MetalSd     MetalSd       None          0        TA        TA     CBlock
+## 3     VinylSd     VinylSd    BrkFace        162        Gd        TA      PConc
+## 4     Wd Sdng     Wd Shng       None          0        TA        TA     BrkTil
+## 5     VinylSd     VinylSd    BrkFace        350        Gd        TA      PConc
+## 6     VinylSd     VinylSd       None          0        TA        TA       Wood
+##   BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1 BsmtFinType2
+## 1       Gd       TA           No          GLQ        706          Unf
+## 2       Gd       TA           Gd          ALQ        978          Unf
+## 3       Gd       TA           Mn          GLQ        486          Unf
+## 4       TA       Gd           No          ALQ        216          Unf
+## 5       Gd       TA           Av          GLQ        655          Unf
+## 6       Gd       TA           No          GLQ        732          Unf
+##   BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir Electrical
+## 1          0       150         856    GasA        Ex          Y      SBrkr
+## 2          0       284        1262    GasA        Ex          Y      SBrkr
+## 3          0       434         920    GasA        Ex          Y      SBrkr
+## 4          0       540         756    GasA        Gd          Y      SBrkr
+## 5          0       490        1145    GasA        Ex          Y      SBrkr
+## 6          0        64         796    GasA        Ex          Y      SBrkr
+##   X1stFlrSF X2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath BsmtHalfBath FullBath
+## 1       856       854            0      1710            1            0        2
+## 2      1262         0            0      1262            0            1        2
+## 3       920       866            0      1786            1            0        2
+## 4       961       756            0      1717            1            0        1
+## 5      1145      1053            0      2198            1            0        2
+## 6       796       566            0      1362            1            0        1
+##   HalfBath BedroomAbvGr KitchenAbvGr KitchenQual TotRmsAbvGrd Functional
+## 1        1            3            1          Gd            8        Typ
+## 2        0            3            1          TA            6        Typ
+## 3        1            3            1          Gd            6        Typ
+## 4        0            3            1          Gd            7        Typ
+## 5        1            4            1          Gd            9        Typ
+## 6        1            1            1          TA            5        Typ
+##   Fireplaces FireplaceQu GarageType GarageYrBlt GarageFinish GarageCars
+## 1          0        <NA>     Attchd        2003          RFn          2
+## 2          1          TA     Attchd        1976          RFn          2
+## 3          1          TA     Attchd        2001          RFn          2
+## 4          1          Gd     Detchd        1998          Unf          3
+## 5          1          TA     Attchd        2000          RFn          3
+## 6          0        <NA>     Attchd        1993          Unf          2
+##   GarageArea GarageQual GarageCond PavedDrive WoodDeckSF OpenPorchSF
+## 1        548         TA         TA          Y          0          61
+## 2        460         TA         TA          Y        298           0
+## 3        608         TA         TA          Y          0          42
+## 4        642         TA         TA          Y          0          35
+## 5        836         TA         TA          Y        192          84
+## 6        480         TA         TA          Y         40          30
+##   EnclosedPorch X3SsnPorch ScreenPorch PoolArea PoolQC Fence MiscFeature
+## 1             0          0           0        0   <NA>  <NA>        <NA>
+## 2             0          0           0        0   <NA>  <NA>        <NA>
+## 3             0          0           0        0   <NA>  <NA>        <NA>
+## 4           272          0           0        0   <NA>  <NA>        <NA>
+## 5             0          0           0        0   <NA>  <NA>        <NA>
+## 6             0        320           0        0   <NA> MnPrv        Shed
+##   MiscVal MoSold YrSold SaleType SaleCondition SalePrice economico medio caro
+## 1       0      2   2008       WD        Normal    208500         1     0    0
+## 2       0      5   2007       WD        Normal    181500         1     0    0
+## 3       0      9   2008       WD        Normal    223500         1     0    0
+## 4       0      2   2006       WD       Abnorml    140000         1     0    0
+## 5       0     12   2008       WD        Normal    250000         1     0    0
+## 6     700     10   2009       WD        Normal    143000         1     0    0
+\end{verbatim}
+
+\begin{verbatim}
+##        Id         MSSubClass       MSZoning          LotFrontage    
+##  Min.   :1461   Min.   : 20.00   Length:1459        Min.   : 21.00  
+##  1st Qu.:1826   1st Qu.: 20.00   Class :character   1st Qu.: 58.00  
+##  Median :2190   Median : 50.00   Mode  :character   Median : 67.00  
+##  Mean   :2190   Mean   : 57.38                      Mean   : 68.58  
+##  3rd Qu.:2554   3rd Qu.: 70.00                      3rd Qu.: 80.00  
+##  Max.   :2919   Max.   :190.00                      Max.   :200.00  
+##                                                     NA's   :227     
+##     LotArea         Street             Alley             LotShape        
+##  Min.   : 1470   Length:1459        Length:1459        Length:1459       
+##  1st Qu.: 7391   Class :character   Class :character   Class :character  
+##  Median : 9399   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   : 9819                                                           
+##  3rd Qu.:11518                                                           
+##  Max.   :56600                                                           
+##                                                                          
+##  LandContour         Utilities          LotConfig          LandSlope        
+##  Length:1459        Length:1459        Length:1459        Length:1459       
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##  Neighborhood        Condition1         Condition2          BldgType        
+##  Length:1459        Length:1459        Length:1459        Length:1459       
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##   HouseStyle         OverallQual      OverallCond      YearBuilt   
+##  Length:1459        Min.   : 1.000   Min.   :1.000   Min.   :1879  
+##  Class :character   1st Qu.: 5.000   1st Qu.:5.000   1st Qu.:1953  
+##  Mode  :character   Median : 6.000   Median :5.000   Median :1973  
+##                     Mean   : 6.079   Mean   :5.554   Mean   :1971  
+##                     3rd Qu.: 7.000   3rd Qu.:6.000   3rd Qu.:2001  
+##                     Max.   :10.000   Max.   :9.000   Max.   :2010  
+##                                                                    
+##   YearRemodAdd   RoofStyle           RoofMatl         Exterior1st       
+##  Min.   :1950   Length:1459        Length:1459        Length:1459       
+##  1st Qu.:1963   Class :character   Class :character   Class :character  
+##  Median :1992   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :1984                                                           
+##  3rd Qu.:2004                                                           
+##  Max.   :2010                                                           
+##                                                                         
+##  Exterior2nd         MasVnrType          MasVnrArea      ExterQual        
+##  Length:1459        Length:1459        Min.   :   0.0   Length:1459       
+##  Class :character   Class :character   1st Qu.:   0.0   Class :character  
+##  Mode  :character   Mode  :character   Median :   0.0   Mode  :character  
+##                                        Mean   : 100.7                     
+##                                        3rd Qu.: 164.0                     
+##                                        Max.   :1290.0                     
+##                                        NA's   :15                         
+##   ExterCond          Foundation          BsmtQual           BsmtCond        
+##  Length:1459        Length:1459        Length:1459        Length:1459       
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##  BsmtExposure       BsmtFinType1         BsmtFinSF1     BsmtFinType2      
+##  Length:1459        Length:1459        Min.   :   0.0   Length:1459       
+##  Class :character   Class :character   1st Qu.:   0.0   Class :character  
+##  Mode  :character   Mode  :character   Median : 350.5   Mode  :character  
+##                                        Mean   : 439.2                     
+##                                        3rd Qu.: 753.5                     
+##                                        Max.   :4010.0                     
+##                                        NA's   :1                          
+##    BsmtFinSF2        BsmtUnfSF       TotalBsmtSF     Heating         
+##  Min.   :   0.00   Min.   :   0.0   Min.   :   0   Length:1459       
+##  1st Qu.:   0.00   1st Qu.: 219.2   1st Qu.: 784   Class :character  
+##  Median :   0.00   Median : 460.0   Median : 988   Mode  :character  
+##  Mean   :  52.62   Mean   : 554.3   Mean   :1046                     
+##  3rd Qu.:   0.00   3rd Qu.: 797.8   3rd Qu.:1305                     
+##  Max.   :1526.00   Max.   :2140.0   Max.   :5095                     
+##  NA's   :1         NA's   :1        NA's   :1                        
+##   HeatingQC          CentralAir         Electrical          X1stFlrSF     
+##  Length:1459        Length:1459        Length:1459        Min.   : 407.0  
+##  Class :character   Class :character   Class :character   1st Qu.: 873.5  
+##  Mode  :character   Mode  :character   Mode  :character   Median :1079.0  
+##                                                           Mean   :1156.5  
+##                                                           3rd Qu.:1382.5  
+##                                                           Max.   :5095.0  
+##                                                                           
+##    X2ndFlrSF     LowQualFinSF        GrLivArea     BsmtFullBath   
+##  Min.   :   0   Min.   :   0.000   Min.   : 407   Min.   :0.0000  
+##  1st Qu.:   0   1st Qu.:   0.000   1st Qu.:1118   1st Qu.:0.0000  
+##  Median :   0   Median :   0.000   Median :1432   Median :0.0000  
+##  Mean   : 326   Mean   :   3.544   Mean   :1486   Mean   :0.4345  
+##  3rd Qu.: 676   3rd Qu.:   0.000   3rd Qu.:1721   3rd Qu.:1.0000  
+##  Max.   :1862   Max.   :1064.000   Max.   :5095   Max.   :3.0000  
+##                                                   NA's   :2       
+##   BsmtHalfBath       FullBath        HalfBath       BedroomAbvGr  
+##  Min.   :0.0000   Min.   :0.000   Min.   :0.0000   Min.   :0.000  
+##  1st Qu.:0.0000   1st Qu.:1.000   1st Qu.:0.0000   1st Qu.:2.000  
+##  Median :0.0000   Median :2.000   Median :0.0000   Median :3.000  
+##  Mean   :0.0652   Mean   :1.571   Mean   :0.3777   Mean   :2.854  
+##  3rd Qu.:0.0000   3rd Qu.:2.000   3rd Qu.:1.0000   3rd Qu.:3.000  
+##  Max.   :2.0000   Max.   :4.000   Max.   :2.0000   Max.   :6.000  
+##  NA's   :2                                                        
+##   KitchenAbvGr   KitchenQual         TotRmsAbvGrd     Functional       
+##  Min.   :0.000   Length:1459        Min.   : 3.000   Length:1459       
+##  1st Qu.:1.000   Class :character   1st Qu.: 5.000   Class :character  
+##  Median :1.000   Mode  :character   Median : 6.000   Mode  :character  
+##  Mean   :1.042                      Mean   : 6.385                     
+##  3rd Qu.:1.000                      3rd Qu.: 7.000                     
+##  Max.   :2.000                      Max.   :15.000                     
+##                                                                        
+##    Fireplaces     FireplaceQu         GarageType         GarageYrBlt  
+##  Min.   :0.0000   Length:1459        Length:1459        Min.   :1895  
+##  1st Qu.:0.0000   Class :character   Class :character   1st Qu.:1959  
+##  Median :0.0000   Mode  :character   Mode  :character   Median :1979  
+##  Mean   :0.5812                                         Mean   :1978  
+##  3rd Qu.:1.0000                                         3rd Qu.:2002  
+##  Max.   :4.0000                                         Max.   :2207  
+##                                                         NA's   :78    
+##  GarageFinish         GarageCars      GarageArea      GarageQual       
+##  Length:1459        Min.   :0.000   Min.   :   0.0   Length:1459       
+##  Class :character   1st Qu.:1.000   1st Qu.: 318.0   Class :character  
+##  Mode  :character   Median :2.000   Median : 480.0   Mode  :character  
+##                     Mean   :1.766   Mean   : 472.8                     
+##                     3rd Qu.:2.000   3rd Qu.: 576.0                     
+##                     Max.   :5.000   Max.   :1488.0                     
+##                     NA's   :1       NA's   :1                          
+##   GarageCond         PavedDrive          WoodDeckSF       OpenPorchSF    
+##  Length:1459        Length:1459        Min.   :   0.00   Min.   :  0.00  
+##  Class :character   Class :character   1st Qu.:   0.00   1st Qu.:  0.00  
+##  Mode  :character   Mode  :character   Median :   0.00   Median : 28.00  
+##                                        Mean   :  93.17   Mean   : 48.31  
+##                                        3rd Qu.: 168.00   3rd Qu.: 72.00  
+##                                        Max.   :1424.00   Max.   :742.00  
+##                                                                          
+##  EnclosedPorch       X3SsnPorch       ScreenPorch        PoolArea      
+##  Min.   :   0.00   Min.   :  0.000   Min.   :  0.00   Min.   :  0.000  
+##  1st Qu.:   0.00   1st Qu.:  0.000   1st Qu.:  0.00   1st Qu.:  0.000  
+##  Median :   0.00   Median :  0.000   Median :  0.00   Median :  0.000  
+##  Mean   :  24.24   Mean   :  1.794   Mean   : 17.06   Mean   :  1.744  
+##  3rd Qu.:   0.00   3rd Qu.:  0.000   3rd Qu.:  0.00   3rd Qu.:  0.000  
+##  Max.   :1012.00   Max.   :360.000   Max.   :576.00   Max.   :800.000  
+##                                                                        
+##     PoolQC             Fence           MiscFeature           MiscVal        
+##  Length:1459        Length:1459        Length:1459        Min.   :    0.00  
+##  Class :character   Class :character   Class :character   1st Qu.:    0.00  
+##  Mode  :character   Mode  :character   Mode  :character   Median :    0.00  
+##                                                           Mean   :   58.17  
+##                                                           3rd Qu.:    0.00  
+##                                                           Max.   :17000.00  
+##                                                                             
+##      MoSold           YrSold       SaleType         SaleCondition     
+##  Min.   : 1.000   Min.   :2006   Length:1459        Length:1459       
+##  1st Qu.: 4.000   1st Qu.:2007   Class :character   Class :character  
+##  Median : 6.000   Median :2008   Mode  :character   Mode  :character  
+##  Mean   : 6.104   Mean   :2008                                        
+##  3rd Qu.: 8.000   3rd Qu.:2009                                        
+##  Max.   :12.000   Max.   :2010                                        
+## 
+\end{verbatim}
+
+\begin{verbatim}
+##        Id         SalePrice        economico          medio       
+##  Min.   :1461   Min.   :135751   Min.   :0.0000   Min.   :0.0000  
+##  1st Qu.:1826   1st Qu.:168703   1st Qu.:0.0000   1st Qu.:0.0000  
+##  Median :2190   Median :179209   Median :1.0000   Median :0.0000  
+##  Mean   :2190   Mean   :179184   Mean   :0.6923   Mean   :0.3009  
+##  3rd Qu.:2554   3rd Qu.:186789   3rd Qu.:1.0000   3rd Qu.:1.0000  
+##  Max.   :2919   Max.   :281644   Max.   :1.0000   Max.   :1.0000  
+##       caro            category        
+##  Min.   :0.000000   Length:1459       
+##  1st Qu.:0.000000   Class :character  
+##  Median :0.000000   Mode  :character  
+##  Mean   :0.006854                     
+##  3rd Qu.:0.000000                     
+##  Max.   :1.000000
+\end{verbatim}
+
+Se observa que utilizamos para la variable objetivo tres categorias,
+ecnonomico, caro y medio donde primero calculamos el valor de la casa
+máxima y el mínimo valor de la casa donde luego lo restamos el valor
+máximo con el mínimo y luego dividirlo entre tres para así diferenciar
+que casa deberia de pertenecer en esas tres variables.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-3-1.pdf}
+Se observa que las casas que tienen una condición de venta ``Normal''
+son las más caras. En comparación, otras casas con diferentes
+condiciones tienden a ser económicas o de bajo costo. Aunque también se
+observa que la condición ``Family'' tiende a presentar un precio medio.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-4-1.pdf}
+Se observa que las casas con escritura ``WD'' presentan un mayor rango
+de precios, concentrándose en viviendas caras y con áreas superiores a
+los 30,000 m². Sin embargo, también se identifican varios puntos
+atípicos en este grupo. Por otro lado, las propiedades con escritura
+tipo ``COD'' (escritura emitida por un funcionario judicial) tienden a
+ubicarse en un rango de entre 0 y 20,000 m², con precios mayormente
+medios y algunos económicos. Finalmente, las viviendas con tipo de venta
+``ConLI'' (contrato con interés bajo) se asocian exclusivamente a casas
+económicas, sin presencia en los rangos de precio medio o alto.
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-5-1.pdf}
+Se observa en este diagrama de caja y bigotes que la mayoría de las
+casas clasificadas como ``caras'' forman parte del tipo de venta ``WD'',
+que corresponde a la transferencia mediante escritura. Por otro lado,
+las categorías ``caro'' y ``medio'' se encuentran en un rango similar,
+aunque ``caro'' presenta un rango más amplio. También se puede notar que
+dentro del criterio ``WD'' existen casos tanto económicos como de precio
+medio. Por otro lado, las casas vendidas bajo condiciones de menor
+interés (como ``ConLI'') presentan un mayor volumen de viviendas
+económicas, lo cual resulta coherente con el tipo de financiación
+ofrecido.
+
+En base a los datos explorados podemos observar o utilizar ciertas
+variables para generar el modelo SVM. A continuación se realizaran
+varios modelos tuneados de SVM para realizar comparaciones ante la
+eficiencia y exactitud de otros modelos.
+
+\begin{verbatim}
+## Cargando paquete requerido: lattice
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Adjuntando el paquete: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## 
+## ========== MODELO 1: SVM LINEAL ==========
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ===== Resultados para SVM Lineal (C=1) =====
+## Precisión en train: 96.38 %
+## Precisión en test: 95.65 %
+## Diferencia (train-test): 0.73 % puntos
+## 
+## Matriz de confusión (datos de prueba):
+##            Reference
+## Prediction  caro economico medio
+##   caro         2         1     1
+##   economico    0       381     9
+##   medio        0         8    35
+## 
+## Diagnóstico: El modelo parece estar bien ajustado
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## 
+## ========== MODELO 2: SVM POLINOMIAL ==========
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ===== Resultados para SVM Polinomial (grado=2, C=1) =====
+## Precisión en train: 95.21 %
+## Precisión en test: 94.51 %
+## Diferencia (train-test): 0.7 % puntos
+## 
+## Matriz de confusión (datos de prueba):
+##            Reference
+## Prediction  caro economico medio
+##   caro         0         1     1
+##   economico    1       383    14
+##   medio        1         6    30
+## 
+## Diagnóstico: El modelo parece estar bien ajustado
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## 
+## ========== MODELO 3: SVM RADIAL ==========
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ===== Resultados para SVM Radial (gamma=0.1, C=1) =====
+## Precisión en train: 97.07 %
+## Precisión en test: 94.97 %
+## Diferencia (train-test): 2.1 % puntos
+## 
+## Matriz de confusión (datos de prueba):
+##            Reference
+## Prediction  caro economico medio
+##   caro         0         0     0
+##   economico    0       382    12
+##   medio        2         8    33
+## 
+## Diagnóstico: El modelo parece estar bien ajustado
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## 
+## ========== MODELO 4: SVM RADIAL CON MAYOR REGULARIZACIÓN ==========
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ===== Resultados para SVM Radial Regularizado (gamma=0.01, C=0.5) =====
+## Precisión en train: 94.92 %
+## Precisión en test: 95.42 %
+## Diferencia (train-test): -0.51 % puntos
+## 
+## Matriz de confusión (datos de prueba):
+##            Reference
+## Prediction  caro economico medio
+##   caro         0         0     0
+##   economico    0       383    11
+##   medio        2         7    34
+## 
+## Diagnóstico: El modelo parece estar bien ajustado
+\end{verbatim}
+
+En todos los modelos, las equivocaciones parecen ser entre las casas
+economicas y las de precio medio. Todos estas equivocaciones son leves,
+ya que los precios que comprenden estas categorias son bastante
+cercanos, por lo cual equivocaciones en estos campos. Para las casas
+caras, los modelos parecen tener equivocaciones entre las casas caras y
+medias. El unico modelo que fue capaz de identificar correctamente las
+casas caras fue el SMV linear con c = 1.
+
+\begin{verbatim}
+##                    Modelo Precisión_Train Precisión_Test   Diferencia
+## 1              SVM Lineal       0.9638319      0.9565217  0.007310128
+## 2          SVM Polinomial       0.9521017      0.9450801  0.007021570
+## 3              SVM Radial       0.9706745      0.9496568  0.021017736
+## 4 SVM Radial Regularizado       0.9491691      0.9542334 -0.005064299
+\end{verbatim}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\begin{verbatim}
+## El mejor modelo según precisión en validación es: SVM Lineal
+\end{verbatim}
+
+Todos los modelos parecen tener una precision demasiado alta, lo que
+podria ser indicador de sobreajuste, pero el modelo con la mayor
+diferencia de precision (y la precision mas alta) parece ser el SVM
+Radial. Para manejar posibles sobreajustes se podria:
+
+\begin{itemize}
+\tightlist
+\item
+  Reducir la complejidad del modelo (con menor gamma o grado polinomial)
+\item
+  Aumentar la regularizacion
+\item
+  Reducir el numero de variables predictoras
+\item
+  Usar validacion cruzada
+\end{itemize}
+
+Al observar la eficiencia de diferentes modelos podemos notar que hay
+algunos más eficientes que el modelo SVM pero, el modelo SVM se puede
+realizar un tuneo con la finalidad de observar si es más eficientes o
+mejor que otros modelos. A continuación se realizará el tuneo de SVM
+lineal y realizar la comparación ante modelos como KNN, naive Byaes con
+el criterio del menor RMSE.
+
+\begin{verbatim}
+## [1] 70803.9
+\end{verbatim}
+
+Al normalizar los datos y reemplazar valores NA´s observamos que el RMSE
+del modelo SVM lineal está en los rangos adecuados de otros modelos pero
+se observa en un momento que este no es un modelo con el menor RMSE.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-18-1.pdf}
+Como se muestra en la gráfica, observamos que los valores predicho se
+acercan más a los valores reales y confirme se observa este es el mejor
+para realizar comparación ante valores reales y predichos que otros
+modelos.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-20-1.pdf}
+Se observa en la gráfica del modelo KNN que hay algunos puntos que si
+pudo predecir y además no hay evidencia de sobreajuste. Pero, se observa
+que el modelo SVM lineal es el mejor al realizar predicciones.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \FunctionTok{RMSE}\NormalTok{(predModelo3, datos}\SpecialCharTok{$}\NormalTok{SalePrice)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 62053.9
+\end{verbatim}
+
+Observamos que KNN tiene el menor RMSE de los modelos a analizar. Este
+modelo puede ser el menor RMSE de los modelos pero no haya mejor gráfica
+que SVM lineal.
+
+El modelo a utilizar es Naive Bayes donde a continucación se presentara
+la gráfica y su RMSE.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-24-1.pdf}
+Se observa en la gráfica que no es un modelo tán optimo ya que presenta
+algunos datos con sobreajuste pero existen otros datos que no están
+sobreajustados.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \FunctionTok{RMSE}\NormalTok{(predBayes, datos}\SpecialCharTok{$}\NormalTok{SalePrice)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 70237.08
+\end{verbatim}
+
+Por otro lado vemos que el RMSE es menor que SVM lineal. Aunque no es
+uno de los mejores modelos, en el siguente modelo a comparar observamos
+el mayor RMSE y sobreajuste de datos.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-26-1.pdf}
+El modelo presentado es un árbol de decisión en la cual tenemos 4
+niveles de comparación. Además en se observa que RMSE es el mayor de
+todos los modelos presentados.
+
+\begin{verbatim}
+## [1] 77161.11
+\end{verbatim}
+
+se observa que el rmse del modelo de prueba es de 77161.11 lo cual sus
+valores son muy altos lo cual puede indicar un overfitting de los datos
+como se muestra en la siguiente gráfica.
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-28-1.pdf}
+Se observa en la gráfica y efectivamente se puede respaldar el
+overfitting en los datos, como se observa con los puntos rojos, se
+observa lineas de puntos mientras que en los puntos azules se van
+esparciendo no como la linea de puntos rojos.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fitLMPW}\OtherTok{\textless{}{-}}\FunctionTok{lm}\NormalTok{(SalePrice}\SpecialCharTok{\textasciitilde{}}\NormalTok{LotArea, }\AttributeTok{data =}\NormalTok{ train)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ train, }\AttributeTok{mapping =} \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SalePrice, }\AttributeTok{y =}\NormalTok{ LotArea)) }\SpecialCharTok{+}
+\FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"firebrick"}\NormalTok{, }\AttributeTok{size =} \DecValTok{2}\NormalTok{) }\SpecialCharTok{+}
+\FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+\FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Precio Casas \textasciitilde{} Area del lote"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Precio"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Area"}\NormalTok{) }\SpecialCharTok{+}
+\FunctionTok{theme\_bw}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using formula = 'y ~ x'
+\end{verbatim}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-30-1.pdf}
+Usando esta ecuación podemos predecir la Venta de casa para el conjunto
+de prueba.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predL}\OtherTok{\textless{}{-}}\FunctionTok{predict}\NormalTok{(fitLMPW, }\AttributeTok{newdata =}\NormalTok{ datos)}
+\end{Highlighting}
+\end{Shaded}
+
+Al sacar la predicción observamos que este modelo tiene un RMSE muy alto
+lo cual podemos argumentar y analizar con las siguientes gráficas.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{RMSE}\NormalTok{(predL, price}\SpecialCharTok{$}\NormalTok{SalePrice)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 11620.85
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(predL)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        1        2        3        4        5        6 
+## 183242.0 188796.5 187878.8 179789.7 169346.5 179835.9
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{length}\NormalTok{(predL)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1459
+\end{verbatim}
+
+Para saber que tan bueno es el modelo para predecir dados los datos de
+entrenamiento se deben analizar los residuos. Estos no pueden seguir
+ningún patrón, es decir que deben ser aleatorios alrededor de 0. Deben
+estar distribuidos normalmente.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(fitLMPW}\SpecialCharTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##          1          2          3          4          5          6 
+##  31919.085   2504.117  41039.164 -38890.884  61218.248 -45477.256
+\end{verbatim}
+
+En los siguientes gráficos se pueden analizar los residuales.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(fitLMPW)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-35-1.pdf}
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-35-2.pdf}
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-35-3.pdf}
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-35-4.pdf}
+En el gráfico \textbf{\emph{Residuals vs Fitted}} se puede ver que no
+parece haber un patrón y que los puntos están aleatoriamente
+distribuidos alrededor de 0.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(fitLMPW}\SpecialCharTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-36-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(fitLMPW}\SpecialCharTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-36-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{qqnorm}\NormalTok{(fitLMPW}\SpecialCharTok{$}\NormalTok{residuals)}
+\FunctionTok{qqline}\NormalTok{(fitLMPW}\SpecialCharTok{$}\NormalTok{residuals, }\AttributeTok{col=}\StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Avances.2.6_files/figure-latex/unnamed-chunk-36-3.pdf}
+Se observa con el histograma que los datos están distribuidos de manera
+aproximadamente normal, aunque no de forma perfecta. Además, se nota que
+las colas del QQ plot no están alineadas con la línea de tendencia, lo
+cual podría indicar un sobreajuste en los modelos, lo que se puede
+observar en ciertos modelos, como el árbol de regresión. Por otro lado,
+en el diagrama de cajas de bigote se pueden identificar dos datos
+atípicos, los cuales podrían representar ventas de casas en ocasiones
+raras. Por lo tanto en breve se presentarán las conclusiones a realizar
+en todos los modelos realizado, comparaciones, eficiencia, entre otros
+aspectos.
+
+En conclusión, tras evaluar los diferentes modelos de regresión, se
+observa que el modelo de KNN presenta un bajo valor de RMSE, lo que
+indica una buena precisión en sus predicciones. Sin embargo, al analizar
+la dispersión de los puntos predichos frente a los valores reales, se
+puede notar que el modelo de SVM lineal tiene los puntos más cercanos a
+los valores reales en comparación con el KNN, lo que sugiere una mejor
+capacidad de generalización. En contraste, otros modelos presentaron
+signos de sobreajuste o un RMSE elevado, lo que indica que no lograron
+generalizar bien los datos.
+
+\end{document}
