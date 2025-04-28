@@ -1,5 +1,5 @@
 ---
-title: "Avances2.6"
+title: "Máquinas Vectoriales de Soporte (SVM)"
 author: "Andre Jo 22199, Nelson Escalante 22046"
 date: "2025-04-25"
 output: html_document
@@ -8,13 +8,22 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
+library(rpart)
+library(rpart.plot)
+
 ```
 
 
+## Introducción
+En el presente trabajo, se tiene como objetivo construir y evaluar modelos predictivos utilizando el algoritmo de Máquinas de Vectores de Soporte (SVM) para clasificar propiedades inmobiliarias según su precio en tres categorías: barata, media y cara. Para ello, se emplearán los mismos conjuntos de datos de entrenamiento y prueba utilizados en trabajos previos, asegurando la consistencia en las evaluaciones.
 
-```{r}
+En primer lugar, se realizará un análisis exploratorio de los datos para identificar las transformaciones necesarias y garantizar que las características sean adecuadas para el entrenamiento del modelo SVM. Se utilizará como variable de respuesta una categorización del precio de las casas, lo que permitirá desarrollar un modelo de clasificación.
+
+A continuación, se llevará a cabo una exploración general de los datos, utilizando herramientas como las cajas de bigote para visualizar la distribución de las variables y detectar posibles valores atípicos.
+
+
+```{r, echo=FALSE}
 datos <-read.csv("test.csv")
-
 
 ```
 
@@ -146,7 +155,9 @@ datos <- merge(datos, price)
 ```
 Se observa en este diagrama de caja y bigotes que la mayoría de las casas clasificadas como "caras" forman parte del tipo de venta "WD", que corresponde a la transferencia mediante escritura. Por otro lado, las categorías "caro" y "medio" se encuentran en un rango similar, aunque "caro" presenta un rango más amplio. También se puede notar que dentro del criterio "WD" existen casos tanto económicos como de precio medio. Por otro lado, las casas vendidas bajo condiciones de menor interés (como "ConLI") presentan un mayor volumen de viviendas económicas, lo cual resulta coherente con el tipo de financiación ofrecido.
 
-```{r}
+En base a los datos explorados podemos observar o utilizar ciertas variables para generar el modelo SVM. A continuación se realizaran varios modelos tuneados de SVM para realizar comparaciones ante la eficiencia y exactitud de otros modelos.
+
+```{r,  echo=FALSE}
 library(e1071)  # Para SVM
 library(caret)  # Para evaluación de modelos y tuning
 library(dplyr)  # Para manipulación de datos
@@ -170,7 +181,7 @@ datos_train <- train_data[indices, ]
 datos_validate <- train_data[-indices, ]
 ```
 
-```{r}
+```{r,  echo=FALSE}
 evaluate_model <- function(model, train_data, test_data, name) {
   # Predicciones en datos de entrenamiento
   pred_train <- predict(model, train_data[, predictores])
@@ -212,7 +223,7 @@ evaluate_model <- function(model, train_data, test_data, name) {
 }
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # ----- MODELO 1: SVM LINEAL -----
 cat("\n\n========== MODELO 1: SVM LINEAL ==========\n")
 modelo_lineal <- svm(
@@ -231,7 +242,7 @@ resultado_lineal <- evaluate_model(
 )
 ```
 
-```{r}
+```{r ,  echo=FALSE}
 # ----- MODELO 2: SVM POLINOMIAL -----
 cat("\n\n========== MODELO 2: SVM POLINOMIAL ==========\n")
 modelo_poly <- svm(
@@ -251,7 +262,7 @@ resultado_poly <- evaluate_model(
 )
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # ----- MODELO 3: SVM RADIAL (RBF) -----
 cat("\n\n========== MODELO 3: SVM RADIAL ==========\n")
 modelo_radial <- svm(
@@ -271,7 +282,7 @@ resultado_radial <- evaluate_model(
 )
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # ----- MODELO 4: SVM RADIAL (RBF) CON MAYOR REGULARIZACIÓN -----
 cat("\n\n========== MODELO 4: SVM RADIAL CON MAYOR REGULARIZACIÓN ==========\n")
 modelo_radial_reg <- svm(
@@ -291,7 +302,7 @@ resultado_radial_reg <- evaluate_model(
 )
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # Compilar resultados para comparación
 comparacion <- data.frame(
   Modelo = c("SVM Lineal", "SVM Polinomial", "SVM Radial", "SVM Radial Regularizado"),
@@ -319,7 +330,7 @@ comparacion <- data.frame(
 print(comparacion)
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # Visualizar resultados
 comparacion_long <- tidyr::pivot_longer(
   comparacion, 
@@ -340,7 +351,7 @@ ggplot(comparacion_long, aes(x = Modelo, y = Precisión, fill = Conjunto)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # Visualizar la diferencia entre train y test (indicador de sobreajuste)
 ggplot(comparacion, aes(x = Modelo, y = Diferencia)) +
   geom_bar(stat = "identity", fill = "steelblue") +
@@ -353,7 +364,7 @@ ggplot(comparacion, aes(x = Modelo, y = Diferencia)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-```{r}
+```{r,  echo=FALSE}
 # Determinar el mejor modelo
 mejores_modelos <- comparacion %>%
   arrange(desc(Precisión_Test))
@@ -367,3 +378,227 @@ Todos los modelos parecen tener una precision demasiado alta, lo que podria ser 
 - Aumentar la regularizacion
 - Reducir el numero de variables predictoras
 - Usar validacion cruzada
+
+
+Al observar la eficiencia de diferentes modelos podemos notar que hay algunos más eficientes que el modelo SVM pero, el modelo SVM se puede realizar un tuneo con la finalidad de observar si es más eficientes o mejor que otros modelos. A continuación se realizará el tuneo de SVM lineal y realizar la comparación ante modelos como KNN, naive Byaes con el criterio del menor RMSE. 
+```{r,  echo=FALSE}
+# Determinar el mejor modelo
+# 10. Genere un buen modelo de regresión, use para esto la variable del precio de la casa
+# directamente. Tunee el modelo
+
+
+get_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Convert factor columns to character first if needed
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+# Impute: mean for numeric, mode for character
+datos <- datos %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+# Convertir factores a texto si hace falta
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+
+# Reemplazar NAs
+train <- train %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+```
+
+
+```{r warning=FALSE,  echo=FALSE}
+
+control <- trainControl(method = "cv",number = 3)
+c <- expand.grid(cost = c(0.01, 0.1, 1, 5,16,32))
+svm_model2<- train(SalePrice~.,
+      data=train,
+      method="svmLinear2",
+      tuneGrid=c,
+      trControl=control,
+      preProcess = c("center", "scale")
+)
+
+pred_svm_model2<-predict(svm_model2,datos)
+RMSE(pred_svm_model2, datos$SalePrice)
+
+
+```
+Al normalizar los datos y reemplazar valores NA´s observamos que el RMSE del modelo SVM lineal está en los rangos adecuados de otros modelos pero se observa en un momento que este no es un modelo con el menor RMSE. 
+
+```{r,  echo=FALSE}
+
+# Crear un dataframe con los valores reales y predichos
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = pred_svm_model2
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+Como se muestra en la gráfica, observamos que los valores predicho se acercan más a los valores reales y confirme se observa este es el mejor para realizar comparación ante valores reales y predichos que otros modelos. 
+```{r message=FALSE, warning=FALSE , echo=FALSE }
+trctrl <- trainControl(method = "repeatedcv",
+                           number = 10,
+                           repeats = 3)
+parametros <- expand.grid(k = seq(1,25))
+modelo3 <- train(
+  SalePrice~., 
+  data=train, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+predModelo3 <- predict(modelo3, newdata=datos)
+```
+
+```{r,  echo=FALSE}
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = predModelo3
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+Se observa en la gráfica del modelo KNN que hay algunos puntos que si pudo predecir y además no hay evidencia de sobreajuste. Pero, se observa que el modelo SVM lineal es el mejor al realizar predicciones. 
+```{r   message=FALSE, warning=FALSE }
+ RMSE(predModelo3, datos$SalePrice)
+```
+Observamos que KNN tiene el menor RMSE de los modelos a analizar. Este modelo puede ser el menor RMSE de los modelos pero no haya mejor gráfica que SVM lineal. 
+
+
+El modelo a utilizar es Naive Bayes donde a continucación se presentara la gráfica y su RMSE.
+
+```{r, echo=FALSE}
+train <- read.csv("train.csv")
+mergeprice <- read.csv("sample_submission.csv")
+
+data_analysis <- read.csv("test.csv")
+
+data_analysis <- merge(data_analysis, mergeprice, by="Id")
+
+
+```
+
+```{r, echo=FALSE}
+modelo<-naiveBayes(train$SalePrice~., data=train)
+
+predBayes <- predict(modelo, newdata= data_analysis[,1:80] )
+
+predBayes<- as.numeric(as.character(predBayes))
+
+  
+```
+
+```{r, echo=FALSE}
+plot(data_analysis$SalePrice, col="red") 
+points(predBayes, col="blue")
+  
+```
+Se observa en la gráfica que no es un modelo tán optimo ya que presenta algunos datos con sobreajuste pero existen otros datos que no están sobreajustados. 
+```{r,   message=FALSE, warning=FALSE }
+ RMSE(predBayes, datos$SalePrice)
+```
+Por otro lado vemos que el RMSE es menor que SVM lineal. Aunque no es uno de los mejores modelos, en el siguente modelo a comparar observamos el mayor RMSE y sobreajuste de datos. 
+
+
+```{r, echo=FALSE}
+modelo1 <- rpart(SalePrice~.,data = train)
+rpart.plot(modelo1)
+```
+El modelo presentado es un árbol de decisión en la cual tenemos 4 niveles de comparación. Además en se observa que RMSE es el mayor de todos los modelos presentados.  
+```{r,  echo=FALSE }
+predModelo1 <- predict(modelo1, newdata = datos)
+rmseModelo1test<-RMSE(predModelo1,datos$SalePrice)
+
+
+rmseModelo1test
+
+```
+se observa que el rmse del modelo de prueba es de 77161.11 lo cual sus valores son muy altos lo cual puede indicar un overfitting de los datos como se muestra en la siguiente gráfica. 
+
+
+```{r,  echo=FALSE }
+plot(datos$SalePrice,col="red", main="Predicciones vs valores originales")
+points(predModelo1, col="blue")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Se observa en la gráfica y efectivamente se puede respaldar el overfitting en los datos, como se observa con los puntos rojos, se observa lineas de puntos mientras que en los puntos azules se van esparciendo no como la linea de puntos rojos. 
+
+
+```{r}
+fitLMPW<-lm(SalePrice~LotArea, data = train)
+```
+
+```{r}
+
+ggplot(data = train, mapping = aes(x = SalePrice, y = LotArea)) +
+geom_point(color = "firebrick", size = 2) +
+geom_smooth(method = "lm", se = TRUE, color = "black") +
+labs(title = "Precio Casas ~ Area del lote", x = "Precio", y = "Area") +
+theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+```
+Usando esta ecuación podemos predecir la Venta de casa para el conjunto de prueba.  
+```{r}
+predL<-predict(fitLMPW, newdata = datos)
+```
+Al sacar la predicción observamos que este modelo tiene un RMSE muy alto lo cual podemos argumentar y analizar con las siguientes gráficas. 
+```{r, warning=FALSE}
+RMSE(predL, price$SalePrice)
+```
+
+```{r} 
+head(predL)
+length(predL)
+```
+
+Para saber que tan bueno es el modelo para predecir dados los datos de entrenamiento se deben analizar los residuos. Estos no pueden seguir ningún patrón, es decir que deben ser aleatorios alrededor de 0. Deben estar distribuidos normalmente.  
+```{r}
+head(fitLMPW$residuals)
+```
+  
+En los siguientes gráficos se pueden analizar los residuales.
+
+```{r}
+plot(fitLMPW)
+```
+  En el gráfico ***Residuals vs Fitted*** se puede ver que no parece haber un patrón y que los puntos están aleatoriamente distribuidos alrededor de 0.
+```{r}
+hist(fitLMPW$residuals)
+boxplot(fitLMPW$residuals)
+qqnorm(fitLMPW$residuals)
+qqline(fitLMPW$residuals, col="red")
+```
+Se observa con el histograma que los datos están distribuidos de manera aproximadamente normal, aunque no de forma perfecta. Además, se nota que las colas del QQ plot no están alineadas con la línea de tendencia, lo cual podría indicar un sobreajuste en los modelos, lo que se puede observar en ciertos modelos, como el árbol de regresión. Por otro lado, en el diagrama de cajas de bigote se pueden identificar dos datos atípicos, los cuales podrían representar ventas de casas en ocasiones raras. Por lo tanto en breve se presentarán las conclusiones a realizar en todos los modelos realizado, comparaciones, eficiencia, entre otros aspectos.  
+
+En conclusión, tras evaluar los diferentes modelos de regresión, se observa que el modelo de KNN presenta un bajo valor de RMSE, lo que indica una buena precisión en sus predicciones. Sin embargo, al analizar la dispersión de los puntos predichos frente a los valores reales, se puede notar que el modelo de SVM lineal tiene los puntos más cercanos a los valores reales en comparación con el KNN, lo que sugiere una mejor capacidad de generalización. En contraste, otros modelos presentaron signos de sobreajuste o un RMSE elevado, lo que indica que no lograron generalizar bien los datos.
