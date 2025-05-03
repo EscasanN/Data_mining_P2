@@ -1,0 +1,212 @@
+---
+title: "Avances2.7"
+author: "Andre Jo 22199"
+date: "2025-05-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r librerias, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(e1071)  # Para SVM
+library(caret)  # Para evaluación de modelos y tuning
+library(dplyr)  # Para manipulación de datos
+library(caret)
+library(nnet)
+library(RWeka)
+library(dummy)
+library(neuralnet)
+
+```
+
+
+
+```{r, echo=FALSE}
+datos <-read.csv("test.csv")
+
+```
+
+
+```{r Prueba, echo=FALSE}
+
+price <- read.csv("sample_submission.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(price$SalePrice)
+min_price <- min(price$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+price$economico <- 0
+price$medio <- 0
+price$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+price$medio <- ifelse(price$SalePrice > bajo & price$SalePrice <= medio, 1, 0)  # Medium (medio)
+price$caro <- ifelse(price$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+price$economico <- ifelse(price$SalePrice <= bajo, 1, price$economico)
+
+
+head(price)
+```
+
+
+```{r TRAIN, echo=FALSE}
+
+train <- read.csv("train.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(train$SalePrice)
+min_price <- min(train$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+train$economico <- 0
+train$medio <- 0
+train$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+train$medio <- ifelse(train$SalePrice > bajo & train$SalePrice <= medio, 1, 0)  # Medium (medio)
+train$caro <- ifelse(train$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+train$economico <- ifelse(train$SalePrice <= bajo, 1, train$economico)
+
+
+
+price$category <- apply(price, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+
+train$category <- apply(train, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+
+
+head(train)
+```
+
+
+
+
+```{r,  echo=FALSE}
+# Determinar el mejor modelo
+# 10. Genere un buen modelo de regresión, use para esto la variable del precio de la casa
+# directamente. Tunee el modelo
+
+
+get_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Convert factor columns to character first if needed
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+# Impute: mean for numeric, mode for character
+datos <- datos %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+# Convertir factores a texto si hace falta
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+
+# Reemplazar NAs
+train <- train %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+```
+
+Se realiza la eliminación de datos NA´s dentro del dataset con la finalidad de tener más precisión y exactitud en los modelos. 
+
+
+```{r, echo=FALSE}
+datos <- merge(datos, price)
+
+head(datos)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+modeloCaret <- train(category~., data=train, method="nnet", trace=F)
+prediccionCaret<-predict(modeloCaret, newdata = datos)
+
+# Une los niveles posibles para realizar factor
+niveles <- union(unique(prediccionCaret), unique(datos$category))
+
+pred <- factor(prediccionCaret, levels = niveles)
+ref  <- factor(datos$category, levels = niveles)
+
+# Matriz de confusión
+cfmCaret <- confusionMatrix(pred, ref)
+
+cfmCaret
+
+```
+Se observa a continuación que el modelo obtuvo una exactitud de 69.36%, esta cifra no puede ser tan cierto ya que el modelo prácticamente predice todas las observaciones como pertenecientes a la clase económico. Además, observamos que que la  métrica Kappa está cercana a cero lo cual respalda con la teoría. Por otro lado existe un rendimiento nulo en la predicción de las clases "medio" y "caro". Puede ser que haya una fuerte desbalance de clases debido a que hay varias variables predictoras.
+
+
+```{r, echo=FALSE, warning=FALSE}
+
+traincategory <- as.factor(train$category)
+train$y <- as.numeric(traincategory)
+
+datoscategory <- as.factor(datos$category)
+datos$y <- as.numeric(datoscategory)
+
+modelo.nn <- neuralnet(y~SalePrice+LotArea, train[,c("SalePrice","LotArea","y")], hidden = 2, rep = 3)
+
+
+plot(modelo.nn, newdata=datos) #Sale un gr?fico por cada repetici?n, en este caso saldr?n 3 gr?ficos
+datos$predNeuralNet<-round(predict(modelo.nn,newdata = datos),0)
+cfmNeuralNet<-confusionMatrix(as.factor(datos$predNeuralNet),as.factor(datos$y))
+cfmNeuralNet
+
+```
+Se observa a continuación que el modelo y el modelo anterior tuvieron una exactitud cercana a 69% ya que se debe al desbalance en la variable objetivo. La mayoría de las predicciones son asignadas a la clase "económico", lo cual refleja un modelo sesgado hacia la clase que tiene la mayoria de los datos. La métrica Kappa cercana a cero respalda que el modelo no logra una clasificación útil más allá de lo que se obtendría por azar. Como habia mencionado con anterioridad, esto se debe al desbalance en los datos donde representa que la mayoria de los datos son económicos.
+
