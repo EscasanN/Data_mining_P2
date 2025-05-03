@@ -1,8 +1,10 @@
 ---
 title: "Avances2.7"
-author: "Andre Jo 22199"
+author: "Andre Jo 22199, Nelson Escalante 22046"
 date: "2025-05-03"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +22,7 @@ library(caret)  # Para evaluación de modelos y tuning
 library(dplyr)  # Para manipulación de datos
 library(caret)
 library(nnet)
-library(RWeka)
+#library(RWeka)
 library(dummy)
 library(neuralnet)
 
@@ -210,3 +212,6 @@ cfmNeuralNet
 ```
 Se observa a continuación que el modelo y el modelo anterior tuvieron una exactitud cercana a 69% ya que se debe al desbalance en la variable objetivo. La mayoría de las predicciones son asignadas a la clase "económico", lo cual refleja un modelo sesgado hacia la clase que tiene la mayoria de los datos. La métrica Kappa cercana a cero respalda que el modelo no logra una clasificación útil más allá de lo que se obtendría por azar. Como habia mencionado con anterioridad, esto se debe al desbalance en los datos donde representa que la mayoria de los datos son económicos.
 
+La baja exactitud de los modelos muestra que estos no cuentan con sobreajuste, si no que estan mal ajustados y tienen desbalance en la informacion.
+
+Para mejorar el muestreo se realizaran tuneos para el primer modelo (caret).

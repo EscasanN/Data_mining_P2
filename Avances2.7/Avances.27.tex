@@ -1,0 +1,369 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Avances2.7},
+  pdfauthor={Andre Jo 22199, Nelson Escalante 22046},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Avances2.7}
+\author{Andre Jo 22199, Nelson Escalante 22046}
+\date{2025-05-03}
+
+\begin{document}
+\maketitle
+
+\begin{verbatim}
+##     Id SalePrice economico medio caro
+## 1 1461  169277.1         1     0    0
+## 2 1462  187758.4         0     1    0
+## 3 1463  183583.7         1     0    0
+## 4 1464  179317.5         1     0    0
+## 5 1465  150730.1         1     0    0
+## 6 1466  177151.0         1     0    0
+\end{verbatim}
+
+\begin{verbatim}
+##   Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape LandContour
+## 1  1         60       RL          65    8450   Pave  <NA>      Reg         Lvl
+## 2  2         20       RL          80    9600   Pave  <NA>      Reg         Lvl
+## 3  3         60       RL          68   11250   Pave  <NA>      IR1         Lvl
+## 4  4         70       RL          60    9550   Pave  <NA>      IR1         Lvl
+## 5  5         60       RL          84   14260   Pave  <NA>      IR1         Lvl
+## 6  6         50       RL          85   14115   Pave  <NA>      IR1         Lvl
+##   Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType
+## 1    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam
+## 2    AllPub       FR2       Gtl      Veenker      Feedr       Norm     1Fam
+## 3    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam
+## 4    AllPub    Corner       Gtl      Crawfor       Norm       Norm     1Fam
+## 5    AllPub       FR2       Gtl      NoRidge       Norm       Norm     1Fam
+## 6    AllPub    Inside       Gtl      Mitchel       Norm       Norm     1Fam
+##   HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle RoofMatl
+## 1     2Story           7           5      2003         2003     Gable  CompShg
+## 2     1Story           6           8      1976         1976     Gable  CompShg
+## 3     2Story           7           5      2001         2002     Gable  CompShg
+## 4     2Story           7           5      1915         1970     Gable  CompShg
+## 5     2Story           8           5      2000         2000     Gable  CompShg
+## 6     1.5Fin           5           5      1993         1995     Gable  CompShg
+##   Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond Foundation
+## 1     VinylSd     VinylSd    BrkFace        196        Gd        TA      PConc
+## 2     MetalSd     MetalSd       None          0        TA        TA     CBlock
+## 3     VinylSd     VinylSd    BrkFace        162        Gd        TA      PConc
+## 4     Wd Sdng     Wd Shng       None          0        TA        TA     BrkTil
+## 5     VinylSd     VinylSd    BrkFace        350        Gd        TA      PConc
+## 6     VinylSd     VinylSd       None          0        TA        TA       Wood
+##   BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1 BsmtFinType2
+## 1       Gd       TA           No          GLQ        706          Unf
+## 2       Gd       TA           Gd          ALQ        978          Unf
+## 3       Gd       TA           Mn          GLQ        486          Unf
+## 4       TA       Gd           No          ALQ        216          Unf
+## 5       Gd       TA           Av          GLQ        655          Unf
+## 6       Gd       TA           No          GLQ        732          Unf
+##   BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir Electrical
+## 1          0       150         856    GasA        Ex          Y      SBrkr
+## 2          0       284        1262    GasA        Ex          Y      SBrkr
+## 3          0       434         920    GasA        Ex          Y      SBrkr
+## 4          0       540         756    GasA        Gd          Y      SBrkr
+## 5          0       490        1145    GasA        Ex          Y      SBrkr
+## 6          0        64         796    GasA        Ex          Y      SBrkr
+##   X1stFlrSF X2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath BsmtHalfBath FullBath
+## 1       856       854            0      1710            1            0        2
+## 2      1262         0            0      1262            0            1        2
+## 3       920       866            0      1786            1            0        2
+## 4       961       756            0      1717            1            0        1
+## 5      1145      1053            0      2198            1            0        2
+## 6       796       566            0      1362            1            0        1
+##   HalfBath BedroomAbvGr KitchenAbvGr KitchenQual TotRmsAbvGrd Functional
+## 1        1            3            1          Gd            8        Typ
+## 2        0            3            1          TA            6        Typ
+## 3        1            3            1          Gd            6        Typ
+## 4        0            3            1          Gd            7        Typ
+## 5        1            4            1          Gd            9        Typ
+## 6        1            1            1          TA            5        Typ
+##   Fireplaces FireplaceQu GarageType GarageYrBlt GarageFinish GarageCars
+## 1          0        <NA>     Attchd        2003          RFn          2
+## 2          1          TA     Attchd        1976          RFn          2
+## 3          1          TA     Attchd        2001          RFn          2
+## 4          1          Gd     Detchd        1998          Unf          3
+## 5          1          TA     Attchd        2000          RFn          3
+## 6          0        <NA>     Attchd        1993          Unf          2
+##   GarageArea GarageQual GarageCond PavedDrive WoodDeckSF OpenPorchSF
+## 1        548         TA         TA          Y          0          61
+## 2        460         TA         TA          Y        298           0
+## 3        608         TA         TA          Y          0          42
+## 4        642         TA         TA          Y          0          35
+## 5        836         TA         TA          Y        192          84
+## 6        480         TA         TA          Y         40          30
+##   EnclosedPorch X3SsnPorch ScreenPorch PoolArea PoolQC Fence MiscFeature
+## 1             0          0           0        0   <NA>  <NA>        <NA>
+## 2             0          0           0        0   <NA>  <NA>        <NA>
+## 3             0          0           0        0   <NA>  <NA>        <NA>
+## 4           272          0           0        0   <NA>  <NA>        <NA>
+## 5             0          0           0        0   <NA>  <NA>        <NA>
+## 6             0        320           0        0   <NA> MnPrv        Shed
+##   MiscVal MoSold YrSold SaleType SaleCondition SalePrice economico medio caro
+## 1       0      2   2008       WD        Normal    208500         1     0    0
+## 2       0      5   2007       WD        Normal    181500         1     0    0
+## 3       0      9   2008       WD        Normal    223500         1     0    0
+## 4       0      2   2006       WD       Abnorml    140000         1     0    0
+## 5       0     12   2008       WD        Normal    250000         1     0    0
+## 6     700     10   2009       WD        Normal    143000         1     0    0
+##    category
+## 1 economico
+## 2 economico
+## 3 economico
+## 4 economico
+## 5 economico
+## 6 economico
+\end{verbatim}
+
+Se realiza la eliminación de datos NA´s dentro del dataset con la
+finalidad de tener más precisión y exactitud en los modelos.
+
+\begin{verbatim}
+##     Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape
+## 1 1461         20       RH          80   11622   Pave  Grvl      Reg
+## 2 1462         20       RL          81   14267   Pave  Grvl      IR1
+## 3 1463         60       RL          74   13830   Pave  Grvl      IR1
+## 4 1464         60       RL          78    9978   Pave  Grvl      IR1
+## 5 1465        120       RL          43    5005   Pave  Grvl      IR1
+## 6 1466         60       RL          75   10000   Pave  Grvl      IR1
+##   LandContour Utilities LotConfig LandSlope Neighborhood Condition1 Condition2
+## 1         Lvl    AllPub    Inside       Gtl        NAmes      Feedr       Norm
+## 2         Lvl    AllPub    Corner       Gtl        NAmes       Norm       Norm
+## 3         Lvl    AllPub    Inside       Gtl      Gilbert       Norm       Norm
+## 4         Lvl    AllPub    Inside       Gtl      Gilbert       Norm       Norm
+## 5         HLS    AllPub    Inside       Gtl      StoneBr       Norm       Norm
+## 6         Lvl    AllPub    Corner       Gtl      Gilbert       Norm       Norm
+##   BldgType HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle
+## 1     1Fam     1Story           5           6      1961         1961     Gable
+## 2     1Fam     1Story           6           6      1958         1958       Hip
+## 3     1Fam     2Story           5           5      1997         1998     Gable
+## 4     1Fam     2Story           6           6      1998         1998     Gable
+## 5   TwnhsE     1Story           8           5      1992         1992     Gable
+## 6     1Fam     2Story           6           5      1993         1994     Gable
+##   RoofMatl Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond
+## 1  CompShg     VinylSd     VinylSd       None          0        TA        TA
+## 2  CompShg     Wd Sdng     Wd Sdng    BrkFace        108        TA        TA
+## 3  CompShg     VinylSd     VinylSd       None          0        TA        TA
+## 4  CompShg     VinylSd     VinylSd    BrkFace         20        TA        TA
+## 5  CompShg     HdBoard     HdBoard       None          0        Gd        TA
+## 6  CompShg     HdBoard     HdBoard       None          0        TA        TA
+##   Foundation BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1
+## 1     CBlock       TA       TA           No          Rec        468
+## 2     CBlock       TA       TA           No          ALQ        923
+## 3      PConc       Gd       TA           No          GLQ        791
+## 4      PConc       TA       TA           No          GLQ        602
+## 5      PConc       Gd       TA           No          ALQ        263
+## 6      PConc       Gd       TA           No          Unf          0
+##   BsmtFinType2 BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir
+## 1          LwQ        144       270         882    GasA        TA          Y
+## 2          Unf          0       406        1329    GasA        TA          Y
+## 3          Unf          0       137         928    GasA        Gd          Y
+## 4          Unf          0       324         926    GasA        Ex          Y
+## 5          Unf          0      1017        1280    GasA        Ex          Y
+## 6          Unf          0       763         763    GasA        Gd          Y
+##   Electrical X1stFlrSF X2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath
+## 1      SBrkr       896         0            0       896            0
+## 2      SBrkr      1329         0            0      1329            0
+## 3      SBrkr       928       701            0      1629            0
+## 4      SBrkr       926       678            0      1604            0
+## 5      SBrkr      1280         0            0      1280            0
+## 6      SBrkr       763       892            0      1655            0
+##   BsmtHalfBath FullBath HalfBath BedroomAbvGr KitchenAbvGr KitchenQual
+## 1            0        1        0            2            1          TA
+## 2            0        1        1            3            1          Gd
+## 3            0        2        1            3            1          TA
+## 4            0        2        1            3            1          Gd
+## 5            0        2        0            2            1          Gd
+## 6            0        2        1            3            1          TA
+##   TotRmsAbvGrd Functional Fireplaces FireplaceQu GarageType GarageYrBlt
+## 1            5        Typ          0          Gd     Attchd        1961
+## 2            6        Typ          0          Gd     Attchd        1958
+## 3            6        Typ          1          TA     Attchd        1997
+## 4            7        Typ          1          Gd     Attchd        1998
+## 5            5        Typ          0          Gd     Attchd        1992
+## 6            7        Typ          1          TA     Attchd        1993
+##   GarageFinish GarageCars GarageArea GarageQual GarageCond PavedDrive
+## 1          Unf          1        730         TA         TA          Y
+## 2          Unf          1        312         TA         TA          Y
+## 3          Fin          2        482         TA         TA          Y
+## 4          Fin          2        470         TA         TA          Y
+## 5          RFn          2        506         TA         TA          Y
+## 6          Fin          2        440         TA         TA          Y
+##   WoodDeckSF OpenPorchSF EnclosedPorch X3SsnPorch ScreenPorch PoolArea PoolQC
+## 1        140           0             0          0         120        0     Ex
+## 2        393          36             0          0           0        0     Ex
+## 3        212          34             0          0           0        0     Ex
+## 4        360          36             0          0           0        0     Ex
+## 5          0          82             0          0         144        0     Ex
+## 6        157          84             0          0           0        0     Ex
+##   Fence MiscFeature MiscVal MoSold YrSold SaleType SaleCondition SalePrice
+## 1 MnPrv        Shed       0      6   2010       WD        Normal  169277.1
+## 2 MnPrv        Gar2   12500      6   2010       WD        Normal  187758.4
+## 3 MnPrv        Shed       0      3   2010       WD        Normal  183583.7
+## 4 MnPrv        Shed       0      6   2010       WD        Normal  179317.5
+## 5 MnPrv        Shed       0      1   2010       WD        Normal  150730.1
+## 6 MnPrv        Shed       0      4   2010       WD        Normal  177151.0
+##   economico medio caro  category
+## 1         1     0    0 economico
+## 2         0     1    0     medio
+## 3         1     0    0 economico
+## 4         1     0    0 economico
+## 5         1     0    0 economico
+## 6         1     0    0 economico
+\end{verbatim}
+
+\begin{verbatim}
+## Confusion Matrix and Statistics
+## 
+##            Reference
+## Prediction  economico medio caro
+##   economico      1010   438    9
+##   medio             0     1    1
+##   caro              0     0    0
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.6929          
+##                  95% CI : (0.6686, 0.7165)
+##     No Information Rate : 0.6923          
+##     P-Value [Acc > NIR] : 0.4901          
+##                                           
+##                   Kappa : 0.004           
+##                                           
+##  Mcnemar's Test P-Value : <2e-16          
+## 
+## Statistics by Class:
+## 
+##                      Class: economico Class: medio Class: caro
+## Sensitivity                  1.000000    0.0022779    0.000000
+## Specificity                  0.004454    0.9990196    1.000000
+## Pos Pred Value               0.693205    0.5000000         NaN
+## Neg Pred Value               1.000000    0.6993823    0.993146
+## Prevalence                   0.692255    0.3008910    0.006854
+## Detection Rate               0.692255    0.0006854    0.000000
+## Detection Prevalence         0.998629    0.0013708    0.000000
+## Balanced Accuracy            0.502227    0.5006488    0.500000
+\end{verbatim}
+
+Se observa a continuación que el modelo obtuvo una exactitud de 69.36\%,
+esta cifra no puede ser tan cierto ya que el modelo prácticamente
+predice todas las observaciones como pertenecientes a la clase
+económico. Además, observamos que que la métrica Kappa está cercana a
+cero lo cual respalda con la teoría. Por otro lado existe un rendimiento
+nulo en la predicción de las clases ``medio'' y ``caro''. Puede ser que
+haya una fuerte desbalance de clases debido a que hay varias variables
+predictoras.
+
+\begin{verbatim}
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    1    2    3
+##          1    0    0    0
+##          2   10 1010  439
+##          3    0    0    0
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.6923          
+##                  95% CI : (0.6679, 0.7159)
+##     No Information Rate : 0.6923          
+##     P-Value [Acc > NIR] : 0.5128          
+##                                           
+##                   Kappa : 0               
+##                                           
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: 1 Class: 2 Class: 3
+## Sensitivity          0.000000   1.0000   0.0000
+## Specificity          1.000000   0.0000   1.0000
+## Pos Pred Value            NaN   0.6923      NaN
+## Neg Pred Value       0.993146      NaN   0.6991
+## Prevalence           0.006854   0.6923   0.3009
+## Detection Rate       0.000000   0.6923   0.0000
+## Detection Prevalence 0.000000   1.0000   0.0000
+## Balanced Accuracy    0.500000   0.5000   0.5000
+\end{verbatim}
+
+Se observa a continuación que el modelo y el modelo anterior tuvieron
+una exactitud cercana a 69\% ya que se debe al desbalance en la variable
+objetivo. La mayoría de las predicciones son asignadas a la clase
+``económico'', lo cual refleja un modelo sesgado hacia la clase que
+tiene la mayoria de los datos. La métrica Kappa cercana a cero respalda
+que el modelo no logra una clasificación útil más allá de lo que se
+obtendría por azar. Como habia mencionado con anterioridad, esto se debe
+al desbalance en los datos donde representa que la mayoria de los datos
+son económicos.
+
+La baja exactitud de los modelos muestra que estos no cuentan con
+sobreajuste, si no que estan mal ajustados y tienen desbalance en la
+informacion.
+
+Para mejorar el muestreo se realizaran tuneos para el primer modelo
+(caret).
+
+\end{document}
