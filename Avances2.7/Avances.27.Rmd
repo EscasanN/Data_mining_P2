@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r librerias, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(RWeka)
 library(ggplot2)
 library(rpart)
 library(rpart.plot)
@@ -170,6 +170,8 @@ Se realiza la eliminación de datos NA´s dentro del dataset con la finalidad de
 ```{r, echo=FALSE}
 datos <- merge(datos, price)
 
+datoscompletos <- rbind(datos, train)
+
 head(datos)
 ```
 
@@ -215,3 +217,155 @@ Se observa a continuación que el modelo y el modelo anterior tuvieron una exact
 La baja exactitud de los modelos muestra que estos no cuentan con sobreajuste, si no que estan mal ajustados y tienen desbalance en la informacion.
 
 Para mejorar el muestreo se realizaran tuneos para el primer modelo (caret).
+
+
+Una vez utilizado la variable respuesta category, seleccionaremos la variable SalePrice para comparar si tiene una mejor exactitud el modelo con otros modelos que utilizamos para la variable respuesta SalePrice.
+
+
+```{r, echo=FALSE, warning=FALSE}
+NB <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
+NB 
+WOW(NB)
+nnodos='4'
+
+datosnoresp <- datos %>% select(-SalePrice)
+
+
+
+
+datoscompletos<- train[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+               "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2",
+              "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF",
+             "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+             "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces"
+              , "GarageCars", "GarageArea", "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+               , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "MoSold", "YrSold",
+                "SalePrice")]
+
+corte <- sample(nrow(datoscompletos),nrow(datoscompletos)*0.5)
+modelo.bp<-NB(SalePrice~., data=datoscompletos,subset = corte, control=Weka_control(H=nnodos, N=1000, G=TRUE), options=NULL)
+datosnoresp$prediccionWeka<-predict(modelo.bp, newdata = datosnoresp)
+niveles <- union(unique(datosnoresp$prediccionWeka), unique(price$SalePrice))
+
+pred <- factor(datosnoresp$prediccionWeka, levels = niveles)
+ref  <- factor(price$SalePrice, levels = niveles)
+rmse <- sqrt(mean((datosnoresp$prediccionWeka - datos$SalePrice)^2))
+rmse
+```
+Por otro lado se observa que el RMSE es muy alto a comparación de otros modelos vistos, normalmente otros modelos como los modelos de random Forest, KNN, Bayes entre otros tiene un RMSE típicamente alrededor de 75000 a 33,000. Este modelo llega a predeci entre un rango de 87165.8 a 145701.9
+
+```{r, echo=FALSE, warning=FALSE}
+
+
+
+modelo.nn2 <- nnet(SalePrice ~ ., 
+                   data = datoscompletos, 
+                   subset = corte, 
+                   size = 6, 
+                   rang = 0.01,
+                   decay = 6e-4, 
+                   maxit = 200,
+                   linout = FALSE)  # Important: for regression
+
+# Predict sale prices
+datos$prediccion2 <- predict(modelo.nn2, newdata = datos)
+
+# Compute RMSE
+rmse <- sqrt(mean((datos$prediccion2 - datos$y)^2))
+rmse
+```
+
+se observa que la medición de la variable respuesta SalePrice con el modelo Red neuronal es muy bueno como se puede observar con el RMSE al ser 179942.2 donde es el menor de todos los modelos vistos.
+ 
+
+```{r, echo=FALSE, warning=FALSE}
+
+library(RWeka)
+library(dplyr)
+library(ggplot2)
+
+set.seed(123)
+
+# Crear clasificador Multilayer Perceptron
+NB <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
+nnodos <- '5'
+
+# Suponiendo que 'datoscompletos' contiene SalePrice y predictores
+# Asegúrate que 'datoscompletos' esté bien definido
+# Ejemplo: datoscompletos <- your full training set
+
+# Porcentajes de entrenamiento que queremos probar
+porcentajes <- seq(0.1, 1.0, by = 0.1)
+
+resultados <- data.frame(Porcentaje = numeric(), RMSE_Train = numeric(), RMSE_Valid = numeric())
+
+for (p in porcentajes) {
+  # Subconjunto aleatorio del tamaño p
+  idx <- sample(1:nrow(datoscompletos), size = floor(p * nrow(datoscompletos)))
+  datos_subset <- datoscompletos[idx, ]
+  
+  # Separar 80% entrenamiento / 20% validación
+  corte <- floor(0.8 * nrow(datos_subset))
+  datos_entrenamiento <- datos_subset[1:corte, ]
+  datos_validacion <- datos_subset[(corte + 1):nrow(datos_subset), ]
+  
+  # Entrenar el modelo
+  modelo.bp <- NB(SalePrice ~ ., data = datos_entrenamiento,
+                  control = Weka_control(H = nnodos, N = 400, G = TRUE))
+  
+  # Predecir
+  pred_train <- predict(modelo.bp, newdata = datos_entrenamiento)
+  pred_valid <- predict(modelo.bp, newdata = datos_validacion)
+  
+  # Calcular RMSE
+  rmse_train <- sqrt(mean((pred_train - datos_entrenamiento$SalePrice)^2))
+  rmse_valid <- sqrt(mean((pred_valid - datos_validacion$SalePrice)^2))
+  
+  # Guardar resultados
+  resultados <- rbind(resultados, data.frame(Porcentaje = p, RMSE_Train = rmse_train, RMSE_Valid = rmse_valid))
+}
+
+# Graficar curva de aprendizaje
+ggplot(resultados, aes(x = Porcentaje)) +
+  geom_line(aes(y = RMSE_Train, color = "Entrenamiento")) +
+  geom_line(aes(y = RMSE_Valid, color = "Validación")) +
+  geom_point(aes(y = RMSE_Train, color = "Entrenamiento")) +
+  geom_point(aes(y = RMSE_Valid, color = "Validación")) +
+  labs(title = "Curva de Aprendizaje - Red Neuronal (RWeka)",
+       x = "Proporción de datos de entrenamiento",
+       y = "RMSE",
+       color = "Conjunto") +
+  theme_minimal()
+
+```
+Al observar la curva de aprendizaje, notamos que existe una tendencia donde puede ser que el modelo de red neuronal sea sobreajustado. Inferimos que a medida que aumentamos el error de entrenamiento como el de validación disminuyen, Sin embargo, al superar aproximadamente el 50-75% de los datos de entrenamiento, comienza a surgir una divergencia notable. El error de entrenamiento continúa su trayectoria descendente, lo que sugiere que el modelo se vuelve cada vez más hábil para ajustarse a los ejemplos de entrenamiento.
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+
+
+
+modelo.nn2 <- nnet(SalePrice ~ ., 
+                   data = datoscompletos, 
+                   subset = corte, 
+                   size = 2, 
+                   rang = 0.1,
+                   decay = 5e-4, 
+                   maxit = 200,
+                   linout = TRUE)  # Important: for regression
+
+# Predict sale prices
+datos$prediccion2 <- predict(modelo.nn2, newdata = datos)
+
+# Compute RMSE
+rmse <- sqrt(mean((datos$prediccion2 - datos$y)^2))
+rmse
+```
+Se observa que al poner linout a True, y otros valores menor al modelo anterior, obtenemos que tiene un RMSE aun mejor 16518.62 lo cual es mejor que otros modelos vistos anteriormente. Por lo tanto observamos que para la variable SalePrice, entre valores menores sea podriamos inferir que el RMSE sea mejor que los otros modelos neuoronales vistos. 
+
+
+
+Con los modelos anteriores se observa que este modelo al tener más repeticiones se puede demorar más que los otros modelos red neuronales. Por lo tanto el modelo tuneado que tenemos es el más eficiente con respecto a tiempo y menor RMSE. Ahora con la variable categorica, category (caro, economico, medio) observamos que no tiene mejor exactitud que otros modelos. Entonces inferimos que no es mejor para variables categoricas. 
