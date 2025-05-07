@@ -1,0 +1,969 @@
+---
+title: "Avances2.7"
+author: "Andre Jo 22199, Nelson Escalante 22046"
+date: "2025-05-03"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+
+```
+
+
+## Introducción
+En el presente trabajo, se tiene como objetivo construir y evaluar modelos predictivos utilizando el algoritmo de Máquinas de Vectores de Soporte (SVM) para clasificar propiedades inmobiliarias según su precio en tres categorías: barata, media y cara. Para ello, se emplearán los mismos conjuntos de datos de entrenamiento y prueba utilizados en trabajos previos, asegurando la consistencia en las evaluaciones.
+
+En primer lugar, se realizará un análisis exploratorio de los datos para identificar las transformaciones necesarias y garantizar que las características sean adecuadas para el entrenamiento del modelo SVM. Se utilizará como variable de respuesta una categorización del precio de las casas, lo que permitirá desarrollar un modelo de clasificación.
+
+A continuación, se llevará a cabo una exploración general de los datos, utilizando herramientas como las cajas de bigote para visualizar la distribución de las variables y detectar posibles valores atípicos.
+
+
+```{r, echo=FALSE}
+datos <-read.csv("test.csv")
+
+```
+
+
+```{r, echo=FALSE}
+
+price <- read.csv("sample_submission.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(price$SalePrice)
+min_price <- min(price$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+price$economico <- 0
+price$medio <- 0
+price$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+price$medio <- ifelse(price$SalePrice > bajo & price$SalePrice <= medio, 1, 0)  # Medium (medio)
+price$caro <- ifelse(price$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+price$economico <- ifelse(price$SalePrice <= bajo, 1, price$economico)
+
+
+head(price)
+```
+
+
+```{r, echo=FALSE}
+
+train_data <- read.csv("train.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(train_data$SalePrice)
+min_price <- min(train_data$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+train_data$economico <- 0
+train_data$medio <- 0
+train_data$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+train_data$medio <- ifelse(train_data$SalePrice > bajo & train_data$SalePrice <= medio, 1, 0)  # Medium (medio)
+train_data$caro <- ifelse(train_data$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+train_data$economico <- ifelse(train_data$SalePrice <= bajo, 1, train_data$economico)
+
+
+
+price$category <- apply(price, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+head(train_data)
+```
+
+
+
+```{r, echo=FALSE}
+
+summary(datos)
+
+summary(price)
+
+
+```
+Se observa que utilizamos para la variable objetivo tres categorias, ecnonomico, caro y medio donde primero calculamos el valor de la casa máxima y el mínimo valor de la casa donde luego lo restamos el valor máximo con el mínimo y luego dividirlo entre tres para así diferenciar que casa deberia de pertenecer en esas tres variables. 
+
+
+
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleCondition, y=LotArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Condición de las casas")+
+  ylab("Lot Area")
+  
+```
+Se observa que las casas que tienen una condición de venta "Normal" son las más caras. En comparación, otras casas con diferentes condiciones tienden a ser económicas o de bajo costo. Aunque también se observa que la condición "Family" tiende a presentar un precio medio.
+
+
+
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleType, y=LotArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Tipo de Venta")+
+  ylab("Lot Area")
+  
+```
+Se observa que las casas con escritura "WD" presentan un mayor rango de precios, concentrándose en viviendas caras y con áreas superiores a los 30,000 m². Sin embargo, también se identifican varios puntos atípicos en este grupo. Por otro lado, las propiedades con escritura tipo "COD" (escritura emitida por un funcionario judicial) tienden a ubicarse en un rango de entre 0 y 20,000 m², con precios mayormente medios y algunos económicos. Finalmente, las viviendas con tipo de venta "ConLI" (contrato con interés bajo) se asocian exclusivamente a casas económicas, sin presencia en los rangos de precio medio o alto.
+```{r, echo=FALSE}
+
+datos <- merge(datos, price)
+
+  ggplot(data = datos, aes(x=SaleType, y=GrLivArea,fill=category)) + 
+      geom_boxplot()+
+  xlab("Tipo de Venta")+
+  ylab("Nivel del Suelo")
+  
+```
+Se observa en este diagrama de caja y bigotes que la mayoría de las casas clasificadas como "caras" forman parte del tipo de venta "WD", que corresponde a la transferencia mediante escritura. Por otro lado, las categorías "caro" y "medio" se encuentran en un rango similar, aunque "caro" presenta un rango más amplio. También se puede notar que dentro del criterio "WD" existen casos tanto económicos como de precio medio. Por otro lado, las casas vendidas bajo condiciones de menor interés (como "ConLI") presentan un mayor volumen de viviendas económicas, lo cual resulta coherente con el tipo de financiación ofrecido.
+
+En base a los datos explorados podemos observar o utilizar ciertas variables para generar el modelo SVM. A continuación se realizaran varios modelos tuneados de SVM para realizar comparaciones ante la eficiencia y exactitud de otros modelos.
+
+```{r,  echo=FALSE}
+library(e1071)  # Para SVM
+library(caret)  # Para evaluación de modelos y tuning
+library(dplyr)  # Para manipulación de datos
+library(ggplot2)  # Para visualización
+
+train_data$category <- ifelse(train_data$caro == 1, "caro", 
+                        ifelse(train_data$medio == 1, "medio", "economico"))
+train_data$category <- as.factor(train_data$category)
+
+predictores <- c("LotArea", "OverallQual", "OverallCond", "YearBuilt", 
+                 "YearRemodAdd", "TotalBsmtSF", "GrLivArea", "BedroomAbvGr", 
+                 "KitchenAbvGr", "TotRmsAbvGrd", "GarageCars", "GarageArea")
+
+predictores <- predictores[predictores %in% colnames(train_data)]
+
+train_data_2 <- train_data[complete.cases(train_data[, predictores]), c(predictores, "category")]
+
+set.seed(123)  # Para reproducibilidad
+indices <- createDataPartition(train_data_2$category, p = 0.7, list = FALSE)
+datos_train <- train_data_2[indices, ]
+datos_validate <- train_data_2[-indices, ]
+```
+
+```{r,  echo=FALSE}
+evaluate_model <- function(model, train_data_2, test_data, name) {
+  # Predicciones en datos de entrenamiento
+  pred_train <- predict(model, train_data_2[, predictores])
+  conf_train <- confusionMatrix(pred_train, train_data_2$category)
+  acc_train <- conf_train$overall["Accuracy"]
+  
+  # Predicciones en datos de prueba
+  pred_test <- predict(model, test_data[, predictores])
+  conf_test <- confusionMatrix(pred_test, test_data$category)
+  acc_test <- conf_test$overall["Accuracy"]
+  
+  # Mostrar resultados
+  cat("\n===== Resultados para", name, "=====\n")
+  cat("Precisión en train:", round(acc_train * 100, 2), "%\n")
+  cat("Precisión en test:", round(acc_test * 100, 2), "%\n")
+  cat("Diferencia (train-test):", round((acc_train - acc_test) * 100, 2), "% puntos\n")
+  
+  cat("\nMatriz de confusión (datos de prueba):\n")
+  print(conf_test$table)
+  
+  # Evaluación de ajuste
+  if((acc_train - acc_test) > 0.1) {
+    cat("\nDiagnóstico: Posible sobreajuste (overfitting)\n")
+    cat("El modelo tiene un rendimiento significativamente mejor en los datos de entrenamiento.\n")
+  } else if(acc_train < 0.6 && acc_test < 0.6) {
+    cat("\nDiagnóstico: Posible subajuste (underfitting)\n")
+    cat("El modelo tiene un rendimiento bajo tanto en entrenamiento como en prueba.\n")
+  } else {
+    cat("\nDiagnóstico: El modelo parece estar bien ajustado\n")
+  }
+  
+  return(list(
+    model = model,
+    accuracy_train = acc_train,
+    accuracy_test = acc_test,
+    conf_matrix = conf_test,
+    diff = acc_train - acc_test
+  ))
+}
+```
+
+```{r,  echo=FALSE}
+# ----- MODELO 1: SVM LINEAL -----
+cat("\n\n========== MODELO 1: SVM LINEAL ==========\n")
+modelo_lineal <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "linear",
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_lineal <- evaluate_model(
+  modelo_lineal, 
+  datos_train, 
+  datos_validate, 
+  "SVM Lineal (C=1)"
+)
+```
+
+```{r ,  echo=FALSE}
+# ----- MODELO 2: SVM POLINOMIAL -----
+cat("\n\n========== MODELO 2: SVM POLINOMIAL ==========\n")
+modelo_poly <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "polynomial",
+  degree = 2,
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_poly <- evaluate_model(
+  modelo_poly, 
+  datos_train, 
+  datos_validate, 
+  "SVM Polinomial (grado=2, C=1)"
+)
+```
+
+```{r,  echo=FALSE}
+# ----- MODELO 3: SVM RADIAL (RBF) -----
+cat("\n\n========== MODELO 3: SVM RADIAL ==========\n")
+modelo_radial <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "radial",
+  gamma = 0.1,
+  cost = 1,
+  scale = TRUE
+)
+
+resultado_radial <- evaluate_model(
+  modelo_radial, 
+  datos_train, 
+  datos_validate, 
+  "SVM Radial (gamma=0.1, C=1)"
+)
+```
+
+```{r,  echo=FALSE}
+# ----- MODELO 4: SVM RADIAL (RBF) CON MAYOR REGULARIZACIÓN -----
+cat("\n\n========== MODELO 4: SVM RADIAL CON MAYOR REGULARIZACIÓN ==========\n")
+modelo_radial_reg <- svm(
+  category ~ ., 
+  data = datos_train,
+  kernel = "radial",
+  gamma = 0.01,  # Gamma más bajo = menos complejidad
+  cost = 0.5,    # C más bajo = más regularización
+  scale = TRUE
+)
+
+resultado_radial_reg <- evaluate_model(
+  modelo_radial_reg, 
+  datos_train, 
+  datos_validate, 
+  "SVM Radial Regularizado (gamma=0.01, C=0.5)"
+)
+```
+En todos los modelos, las equivocaciones parecen ser entre las casas economicas y las de precio medio. Todos estas equivocaciones son leves, ya que los precios que comprenden estas categorias son bastante cercanos, por lo cual equivocaciones en estos campos. Para las casas caras, los modelos parecen tener equivocaciones entre las casas caras y medias. El unico modelo que fue capaz de identificar correctamente las casas caras fue el SMV linear con c = 1.
+
+```{r,  echo=FALSE}
+# Compilar resultados para comparación
+comparacion <- data.frame(
+  Modelo = c("SVM Lineal", "SVM Polinomial", "SVM Radial", "SVM Radial Regularizado"),
+  Precisión_Train = c(
+    resultado_lineal$accuracy_train,
+    resultado_poly$accuracy_train,
+    resultado_radial$accuracy_train,
+    resultado_radial_reg$accuracy_train
+  ),
+  Precisión_Test = c(
+    resultado_lineal$accuracy_test,
+    resultado_poly$accuracy_test,
+    resultado_radial$accuracy_test,
+    resultado_radial_reg$accuracy_test
+  ),
+  Diferencia = c(
+    resultado_lineal$diff,
+    resultado_poly$diff,
+    resultado_radial$diff,
+    resultado_radial_reg$diff
+  )
+)
+
+# Mostrar tabla de comparación
+print(comparacion)
+```
+
+```{r,  echo=FALSE}
+# Visualizar resultados
+comparacion_long <- tidyr::pivot_longer(
+  comparacion, 
+  cols = c("Precisión_Train", "Precisión_Test"),
+  names_to = "Conjunto",
+  values_to = "Precisión"
+)
+
+ggplot(comparacion_long, aes(x = Modelo, y = Precisión, fill = Conjunto)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = round(Precisión, 3)), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 3) +
+  labs(title = "Comparación de Precisión entre Modelos SVM",
+       x = "Modelo", 
+       y = "Precisión") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r,  echo=FALSE}
+# Visualizar la diferencia entre train y test (indicador de sobreajuste)
+ggplot(comparacion, aes(x = Modelo, y = Diferencia)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes(label = round(Diferencia, 3)), vjust = -0.5) +
+  labs(title = "Diferencia entre Precisión de Train y Test",
+       subtitle = "Valores más altos indican mayor riesgo de sobreajuste",
+       x = "Modelo", 
+       y = "Diferencia (Train - Test)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r,  echo=FALSE}
+# Determinar el mejor modelo
+mejores_modelos <- comparacion %>%
+  arrange(desc(Precisión_Test))
+
+mejor_modelo_nombre <- mejores_modelos$Modelo[1]
+cat("El mejor modelo según precisión en validación es:", mejor_modelo_nombre, "\n")
+```
+Todos los modelos parecen tener una precision demasiado alta, lo que podria ser indicador de sobreajuste, pero el modelo con la mayor diferencia de precision (y la precision mas alta) parece ser el SVM Radial. Para manejar posibles sobreajustes se podria:
+
+- Reducir la complejidad del modelo (con menor gamma o grado polinomial)
+- Aumentar la regularizacion
+- Reducir el numero de variables predictoras
+- Usar validacion cruzada
+
+Al observar la eficiencia de diferentes modelos podemos notar que hay algunos más eficientes que el modelo SVM pero, el modelo SVM se puede realizar un tuneo con la finalidad de observar si es más eficientes o mejor que otros modelos. A continuación se realizará el tuneo de SVM lineal y realizar la comparación ante modelos como KNN, naive Byaes con el criterio del menor RMSE. 
+```{r,  echo=FALSE}
+# Determinar el mejor modelo
+# 10. Genere un buen modelo de regresión, use para esto la variable del precio de la casa
+# directamente. Tunee el modelo
+
+
+get_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Convert factor columns to character first if needed
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+# Impute: mean for numeric, mode for character
+datos <- datos %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+# Convertir factores a texto si hace falta
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+
+# Reemplazar NAs
+train_data <- train_data %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+```
+
+
+```{r warning=FALSE,  echo=FALSE}
+
+control <- trainControl(method = "cv",number = 3)
+grid <- expand.grid(cost = c(0.01, 0.1, 1, 5,16,32))
+svm_model2<- train(SalePrice~.,
+      data=train_data,
+      method="svmLinear2",
+      tuneGrid = grid,
+      trControl=control,
+      preProcess = c("center", "scale")
+)
+
+pred_svm_model2<-predict(svm_model2,datos)
+RMSE(pred_svm_model2, datos$SalePrice)
+
+
+```
+Al normalizar los datos y reemplazar valores NA´s observamos que el RMSE del modelo SVM lineal está en los rangos adecuados de otros modelos pero se observa en un momento que este no es un modelo con el menor RMSE. 
+
+```{r,  echo=FALSE}
+
+# Crear un dataframe con los valores reales y predichos
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = pred_svm_model2
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+Como se muestra en la gráfica, observamos que los valores predicho se acercan más a los valores reales y confirme se observa este es el mejor para realizar comparación ante valores reales y predichos que otros modelos. 
+```{r message=FALSE, warning=FALSE , echo=FALSE }
+trctrl <- trainControl(method = "repeatedcv",
+                           number = 10,
+                           repeats = 3)
+parametros <- expand.grid(k = seq(1,25))
+modelo3 <- train(
+  SalePrice~., 
+  data=train_data, 
+  method = "knn", 
+  trControl = trctrl, 
+  preProcess= c("center","scale"),
+  tuneGrid = parametros
+)
+predModelo3 <- predict(modelo3, newdata=datos)
+```
+
+```{r,  echo=FALSE}
+df_resultados <- data.frame(
+  Índice = 1:length(datos$SalePrice),  # Índice de cada observación
+  Real = datos$SalePrice,
+  Predicho = predModelo3
+)
+
+# Graficar ambas series
+ggplot(df_resultados) +
+  geom_point(aes(x = Índice, y = Real, color = "Real"), size = 2) +  # Puntos rojos (valores reales)
+  geom_point(aes(x = Índice, y = Predicho, color = "Predicho"), size = 2) +  # Puntos azules (predicciones)
+  scale_color_manual(values = c("Real" = "red", "Predicho" = "blue")) +  # Definir colores
+  labs(title = "Comparación: Valores Reales vs. Predicciones",
+       x = "Índice de Observación",
+       y = "Sale Price",
+       color = "Serie") +
+  theme_minimal()
+```
+Se observa en la gráfica del modelo KNN que hay algunos puntos que si pudo predecir y además no hay evidencia de sobreajuste. Pero, se observa que el modelo SVM lineal es el mejor al realizar predicciones. 
+```{r   message=FALSE, warning=FALSE }
+ RMSE(predModelo3, datos$SalePrice)
+```
+Observamos que KNN tiene el menor RMSE de los modelos a analizar. Este modelo puede ser el menor RMSE de los modelos pero no haya mejor gráfica que SVM lineal. 
+
+
+El modelo a utilizar es Naive Bayes donde a continucación se presentara la gráfica y su RMSE.
+
+```{r, echo=FALSE}
+train_data <- read.csv("train.csv")
+mergeprice <- read.csv("sample_submission.csv")
+
+data_analysis <- read.csv("test.csv")
+
+data_analysis <- merge(data_analysis, mergeprice, by="Id")
+
+
+```
+
+```{r, echo=FALSE}
+modelo<-naiveBayes(train_data$SalePrice~., data=train_data)
+
+predBayes <- predict(modelo, newdata= data_analysis[,1:80] )
+
+predBayes<- as.numeric(as.character(predBayes))
+
+  
+```
+
+```{r, echo=FALSE}
+plot(data_analysis$SalePrice, col="red") 
+points(predBayes, col="blue")
+  
+```
+Se observa en la gráfica que no es un modelo tán optimo ya que presenta algunos datos con sobreajuste pero existen otros datos que no están sobreajustados. 
+```{r,   message=FALSE, warning=FALSE }
+ RMSE(predBayes, datos$SalePrice)
+```
+Por otro lado vemos que el RMSE es menor que SVM lineal. Aunque no es uno de los mejores modelos, en el siguente modelo a comparar observamos el mayor RMSE y sobreajuste de datos. 
+
+
+```{r, echo=FALSE}
+modelo1 <- rpart(SalePrice~.,data = train_data)
+rpart.plot(modelo1)
+```
+El modelo presentado es un árbol de decisión en la cual tenemos 4 niveles de comparación. Además en se observa que RMSE es el mayor de todos los modelos presentados.  
+```{r,  echo=FALSE }
+predModelo1 <- predict(modelo1, newdata = datos)
+rmseModelo1test<-RMSE(predModelo1,datos$SalePrice)
+
+
+rmseModelo1test
+
+```
+se observa que el rmse del modelo de prueba es de 77161.11 lo cual sus valores son muy altos lo cual puede indicar un overfitting de los datos como se muestra en la siguiente gráfica. 
+
+
+```{r,  echo=FALSE }
+plot(datos$SalePrice,col="red", main="Predicciones vs valores originales")
+points(predModelo1, col="blue")
+legend(30,45,legend=c("original", "prediccion"),col=c("blue", "red"),pch=1, cex=0.8)
+```
+Se observa en la gráfica y efectivamente se puede respaldar el overfitting en los datos, como se observa con los puntos rojos, se observa lineas de puntos mientras que en los puntos azules se van esparciendo no como la linea de puntos rojos. 
+
+
+```{r}
+fitLMPW<-lm(SalePrice~LotArea, data = train_data)
+```
+
+```{r}
+
+ggplot(data = train_data, mapping = aes(x = SalePrice, y = LotArea)) +
+geom_point(color = "firebrick", size = 2) +
+geom_smooth(method = "lm", se = TRUE, color = "black") +
+labs(title = "Precio Casas ~ Area del lote", x = "Precio", y = "Area") +
+theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+```
+Usando esta ecuación podemos predecir la Venta de casa para el conjunto de prueba.  
+```{r}
+predL<-predict(fitLMPW, newdata = datos)
+```
+Al sacar la predicción observamos que este modelo tiene un RMSE muy alto lo cual podemos argumentar y analizar con las siguientes gráficas. 
+```{r, warning=FALSE}
+RMSE(predL, price$SalePrice)
+```
+
+```{r} 
+head(predL)
+length(predL)
+```
+
+Para saber que tan bueno es el modelo para predecir dados los datos de entrenamiento se deben analizar los residuos. Estos no pueden seguir ningún patrón, es decir que deben ser aleatorios alrededor de 0. Deben estar distribuidos normalmente.  
+```{r}
+head(fitLMPW$residuals)
+```
+  
+En los siguientes gráficos se pueden analizar los residuales.
+
+```{r}
+plot(fitLMPW)
+```
+  En el gráfico ***Residuals vs Fitted*** se puede ver que no parece haber un patrón y que los puntos están aleatoriamente distribuidos alrededor de 0.
+```{r}
+hist(fitLMPW$residuals)
+boxplot(fitLMPW$residuals)
+qqnorm(fitLMPW$residuals)
+qqline(fitLMPW$residuals, col="red")
+```
+Se observa con el histograma que los datos están distribuidos de manera aproximadamente normal, aunque no de forma perfecta. Además, se nota que las colas del QQ plot no están alineadas con la línea de tendencia, lo cual podría indicar un sobreajuste en los modelos, lo que se puede observar en ciertos modelos, como el árbol de regresión. Por otro lado, en el diagrama de cajas de bigote se pueden identificar dos datos atípicos, los cuales podrían representar ventas de casas en ocasiones raras. Por lo tanto en breve se presentarán las conclusiones a realizar en todos los modelos realizado, comparaciones, eficiencia, entre otros aspectos.  
+
+En conclusión, tras evaluar los diferentes modelos de regresión, se observa que el modelo de KNN presenta un bajo valor de RMSE, lo que indica una buena precisión en sus predicciones. Sin embargo, al analizar la dispersión de los puntos predichos frente a los valores reales, se puede notar que el modelo de SVM lineal tiene los puntos más cercanos a los valores reales en comparación con el KNN, lo que sugiere una mejor capacidad de generalización. En contraste, otros modelos presentaron signos de sobreajuste o un RMSE elevado, lo que indica que no lograron generalizar bien los datos.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r librerias, include=FALSE}
+library(RWeka)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(e1071)  # Para SVM
+library(caret)  # Para evaluación de modelos y tuning
+library(dplyr)  # Para manipulación de datos
+library(caret)
+library(nnet)
+#library(RWeka)
+library(dummy)
+library(neuralnet)
+
+```
+
+
+
+```{r, echo=FALSE}
+datos <-read.csv("test.csv")
+
+```
+
+
+```{r Prueba, echo=FALSE}
+
+price <- read.csv("sample_submission.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(price$SalePrice)
+min_price <- min(price$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+price$economico <- 0
+price$medio <- 0
+price$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+price$medio <- ifelse(price$SalePrice > bajo & price$SalePrice <= medio, 1, 0)  # Medium (medio)
+price$caro <- ifelse(price$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+price$economico <- ifelse(price$SalePrice <= bajo, 1, price$economico)
+
+
+head(price)
+```
+
+
+```{r, echo=FALSE}
+
+train <- read.csv("train.csv")
+
+# Calculate the min, max, and ranges
+max_price <- max(train$SalePrice)
+min_price <- min(train$SalePrice)
+rangos_a_partir <- (max_price - min_price) / 3
+round_rangos <- round(rangos_a_partir)
+
+# Define the price categories
+bajo <- min_price + round_rangos
+medio <- bajo + round_rangos
+alto <- medio + round_rangos
+
+# Step 1: Initialize 'economico' to 0 for all rows
+train$economico <- 0
+train$medio <- 0
+train$caro <- 0
+
+# Step 2: Create the 'medio' and 'caro' binary variables
+train$medio <- ifelse(train$SalePrice > bajo & train$SalePrice <= medio, 1, 0)  # Medium (medio)
+train$caro <- ifelse(train$SalePrice > medio, 1, 0)          # Expensive (caro)
+
+# Step 3: Now set 'economico' to 1 for prices <= 'bajo'
+train$economico <- ifelse(train$SalePrice <= bajo, 1, train$economico)
+
+
+
+price$category <- apply(price, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+
+train$category <- apply(train, 1, function(row) {
+  if (row["caro"] == 1) {
+    return("caro")
+  } else if (row["medio"] == 1) {
+    return("medio")
+  } else if (row["economico"] == 1) {
+    return("economico")
+  } else {
+    return(NA)
+  }
+})
+
+
+
+head(train)
+```
+
+
+
+
+```{r,  echo=FALSE}
+# Determinar el mejor modelo
+# 10. Genere un buen modelo de regresión, use para esto la variable del precio de la casa
+# directamente. Tunee el modelo
+
+
+get_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Convert factor columns to character first if needed
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+# Impute: mean for numeric, mode for character
+datos <- datos %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+# Convertir factores a texto si hace falta
+datos <- datos %>%
+  mutate(across(where(is.factor), as.character))
+
+
+# Reemplazar NAs
+train <- train %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .))) %>%
+  mutate(across(where(is.character), ~ ifelse(is.na(.), get_mode(.), .)))
+
+
+```
+
+Se realiza la eliminación de datos NA´s dentro del dataset con la finalidad de tener más precisión y exactitud en los modelos. 
+
+
+```{r, echo=FALSE}
+datos <- merge(datos, price)
+
+datoscompletos <- rbind(datos, train)
+
+head(datos)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+modeloCaret <- train(category~., data=train, method="nnet", trace=F)
+prediccionCaret<-predict(modeloCaret, newdata = datos)
+
+# Une los niveles posibles para realizar factor
+niveles <- union(unique(prediccionCaret), unique(datos$category))
+
+pred <- factor(prediccionCaret, levels = niveles)
+ref  <- factor(datos$category, levels = niveles)
+
+# Matriz de confusión
+cfmCaret <- confusionMatrix(pred, ref)
+
+cfmCaret
+
+```
+Se observa a continuación que el modelo obtuvo una exactitud de 69.36%, esta cifra no puede ser tan cierto ya que el modelo prácticamente predice todas las observaciones como pertenecientes a la clase económico. Además, observamos que que la  métrica Kappa está cercana a cero lo cual respalda con la teoría. Por otro lado existe un rendimiento nulo en la predicción de las clases "medio" y "caro". Puede ser que haya una fuerte desbalance de clases debido a que hay varias variables predictoras.
+
+
+```{r, echo=FALSE, warning=FALSE}
+
+traincategory <- as.factor(train$category)
+train$y <- as.numeric(traincategory)
+
+datoscategory <- as.factor(datos$category)
+datos$y <- as.numeric(datoscategory)
+
+modelo.nn <- neuralnet(y~SalePrice+LotArea, train[,c("SalePrice","LotArea","y")], hidden = 2, rep = 3)
+
+
+plot(modelo.nn, newdata=datos) #Sale un gr?fico por cada repetici?n, en este caso saldr?n 3 gr?ficos
+datos$predNeuralNet<-round(predict(modelo.nn,newdata = datos),0)
+cfmNeuralNet<-confusionMatrix(as.factor(datos$predNeuralNet),as.factor(datos$y))
+cfmNeuralNet
+
+```
+Se observa a continuación que el modelo y el modelo anterior tuvieron una exactitud cercana a 69% ya que se debe al desbalance en la variable objetivo. La mayoría de las predicciones son asignadas a la clase "económico", lo cual refleja un modelo sesgado hacia la clase que tiene la mayoria de los datos. La métrica Kappa cercana a cero respalda que el modelo no logra una clasificación útil más allá de lo que se obtendría por azar. Como habia mencionado con anterioridad, esto se debe al desbalance en los datos donde representa que la mayoria de los datos son económicos.
+
+La baja exactitud de los modelos muestra que estos no cuentan con sobreajuste, si no que estan mal ajustados y tienen desbalance en la informacion.
+
+Para mejorar el muestreo se realizaran tuneos para el primer modelo (caret).
+
+
+Una vez utilizado la variable respuesta category, seleccionaremos la variable SalePrice para comparar si tiene una mejor exactitud el modelo con otros modelos que utilizamos para la variable respuesta SalePrice.
+
+
+```{r, echo=FALSE, warning=FALSE}
+NB <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
+NB 
+WOW(NB)
+nnodos='4'
+
+datosnoresp <- datos %>% select(-SalePrice)
+
+
+
+
+datoscompletos<- train[,  c("MSSubClass", "LotArea",  "OverallQual", "OverallCond",
+               "YearBuilt", "YearRemodAdd", "BsmtFinSF1", "BsmtFinSF2",
+              "BsmtUnfSF", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF",
+             "BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath" ,
+             "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Fireplaces"
+              , "GarageCars", "GarageArea", "WoodDeckSF" , "OpenPorchSF", "EnclosedPorch"
+               , "X3SsnPorch", "ScreenPorch", "PoolArea", "MiscVal", "MoSold", "YrSold",
+                "SalePrice")]
+
+corte <- sample(nrow(datoscompletos),nrow(datoscompletos)*0.5)
+modelo.bp<-NB(SalePrice~., data=datoscompletos,subset = corte, control=Weka_control(H=nnodos, N=1000, G=TRUE), options=NULL)
+datosnoresp$prediccionWeka<-predict(modelo.bp, newdata = datosnoresp)
+niveles <- union(unique(datosnoresp$prediccionWeka), unique(price$SalePrice))
+
+pred <- factor(datosnoresp$prediccionWeka, levels = niveles)
+ref  <- factor(price$SalePrice, levels = niveles)
+rmse <- sqrt(mean((datosnoresp$prediccionWeka - datos$SalePrice)^2))
+rmse
+```
+Por otro lado se observa que el RMSE es muy alto a comparación de otros modelos vistos, normalmente otros modelos como los modelos de random Forest, KNN, Bayes entre otros tiene un RMSE típicamente alrededor de 75000 a 33,000. Este modelo llega a predeci entre un rango de 87165.8 a 145701.9
+
+```{r, echo=FALSE, warning=FALSE}
+
+
+
+modelo.nn2 <- nnet(SalePrice ~ ., 
+                   data = datoscompletos, 
+                   subset = corte, 
+                   size = 6, 
+                   rang = 0.01,
+                   decay = 6e-4, 
+                   maxit = 200,
+                   linout = FALSE)  # Important: for regression
+
+# Predict sale prices
+datos$prediccion2 <- predict(modelo.nn2, newdata = datos)
+
+# Compute RMSE
+rmse <- sqrt(mean((datos$prediccion2 - datos$y)^2))
+rmse
+```
+
+se observa que la medición de la variable respuesta SalePrice con el modelo Red neuronal es muy bueno como se puede observar con el RMSE al ser 179942.2 donde es el menor de todos los modelos vistos.
+ 
+
+```{r, echo=FALSE, warning=FALSE}
+
+library(RWeka)
+library(dplyr)
+library(ggplot2)
+
+set.seed(123)
+
+# Crear clasificador Multilayer Perceptron
+NB <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
+nnodos <- '5'
+
+# Suponiendo que 'datoscompletos' contiene SalePrice y predictores
+# Asegúrate que 'datoscompletos' esté bien definido
+# Ejemplo: datoscompletos <- your full training set
+
+# Porcentajes de entrenamiento que queremos probar
+porcentajes <- seq(0.1, 1.0, by = 0.1)
+
+resultados <- data.frame(Porcentaje = numeric(), RMSE_Train = numeric(), RMSE_Valid = numeric())
+
+for (p in porcentajes) {
+  # Subconjunto aleatorio del tamaño p
+  idx <- sample(1:nrow(datoscompletos), size = floor(p * nrow(datoscompletos)))
+  datos_subset <- datoscompletos[idx, ]
+  
+  # Separar 80% entrenamiento / 20% validación
+  corte <- floor(0.8 * nrow(datos_subset))
+  datos_entrenamiento <- datos_subset[1:corte, ]
+  datos_validacion <- datos_subset[(corte + 1):nrow(datos_subset), ]
+  
+  # Entrenar el modelo
+  modelo.bp <- NB(SalePrice ~ ., data = datos_entrenamiento,
+                  control = Weka_control(H = nnodos, N = 400, G = TRUE))
+  
+  # Predecir
+  pred_train <- predict(modelo.bp, newdata = datos_entrenamiento)
+  pred_valid <- predict(modelo.bp, newdata = datos_validacion)
+  
+  # Calcular RMSE
+  rmse_train <- sqrt(mean((pred_train - datos_entrenamiento$SalePrice)^2))
+  rmse_valid <- sqrt(mean((pred_valid - datos_validacion$SalePrice)^2))
+  
+  # Guardar resultados
+  resultados <- rbind(resultados, data.frame(Porcentaje = p, RMSE_Train = rmse_train, RMSE_Valid = rmse_valid))
+}
+
+# Graficar curva de aprendizaje
+ggplot(resultados, aes(x = Porcentaje)) +
+  geom_line(aes(y = RMSE_Train, color = "Entrenamiento")) +
+  geom_line(aes(y = RMSE_Valid, color = "Validación")) +
+  geom_point(aes(y = RMSE_Train, color = "Entrenamiento")) +
+  geom_point(aes(y = RMSE_Valid, color = "Validación")) +
+  labs(title = "Curva de Aprendizaje - Red Neuronal (RWeka)",
+       x = "Proporción de datos de entrenamiento",
+       y = "RMSE",
+       color = "Conjunto") +
+  theme_minimal()
+
+```
+Al observar la curva de aprendizaje, notamos que existe una tendencia donde puede ser que el modelo de red neuronal sea sobreajustado. Inferimos que a medida que aumentamos el error de entrenamiento como el de validación disminuyen, Sin embargo, al superar aproximadamente el 50-75% de los datos de entrenamiento, comienza a surgir una divergencia notable. El error de entrenamiento continúa su trayectoria descendente, lo que sugiere que el modelo se vuelve cada vez más hábil para ajustarse a los ejemplos de entrenamiento.
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+
+
+
+modelo.nn2 <- nnet(SalePrice ~ ., 
+                   data = datoscompletos, 
+                   subset = corte, 
+                   size = 2, 
+                   rang = 0.1,
+                   decay = 5e-4, 
+                   maxit = 200,
+                   linout = TRUE)  # Important: for regression
+
+# Predict sale prices
+datos$prediccion2 <- predict(modelo.nn2, newdata = datos)
+
+# Compute RMSE
+rmse <- sqrt(mean((datos$prediccion2 - datos$y)^2))
+rmse
+```
+Se observa que al poner linout a True, y otros valores menor al modelo anterior, obtenemos que tiene un RMSE aun mejor 16518.62 lo cual es mejor que otros modelos vistos anteriormente. Por lo tanto observamos que para la variable SalePrice, entre valores menores sea podriamos inferir que el RMSE sea mejor que los otros modelos neuoronales vistos. 
+
+
+
+Con los modelos anteriores se observa que este modelo al tener más repeticiones se puede demorar más que los otros modelos red neuronales. Por lo tanto el modelo tuneado que tenemos es el más eficiente con respecto a tiempo y menor RMSE. Ahora con la variable categorica, category (caro, economico, medio) observamos que no tiene mejor exactitud que otros modelos. Entonces inferimos que no es mejor para variables categoricas.
